@@ -29,7 +29,7 @@ const uint8_t LED_GPIO[] = {
 };
 const uint8_t ENC_GPIO[] = {18,20};      // L_ENC(0, 1); R_ENC(2, 3)
 const bool ENC_REV[] = {false,false};  // Reverse Encoders
-const uint8_t WS2812B_GPIO = 27;
+const uint8_t WS2812B_GPIO[] = {26,27};
 
 #endif
 
