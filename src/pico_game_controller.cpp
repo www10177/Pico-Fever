@@ -17,11 +17,12 @@
 #include "hardware/pio.h"
 #include "pico/multicore.h"
 #include "pico/stdlib.h"
+#include "pico/bootrom.h"
+#include "usb_driver/descriptorHelper.h"
 #include "tusb.h"
-#include "usb_descriptors.h"
 // clang-format off
 #include "debounce/debounce_include.h"
-#include "rgb/rgb_include.h"
+#include "ws2812/rgb_include.h"
 // clang-format on
 
 PIO pio, pio_1;
@@ -36,10 +37,11 @@ bool kbm_report;
 
 uint64_t reactive_timeout_timestamp;
 
-void (*ws2812b_mode)();
+void (*ws2812b_mode)(uint32_t);
 void (*loop_mode)();
 uint16_t (*debounce_mode)();
 bool joy_mode_check = true;
+InputMode input_mode = INPUT_MODE_KEYBOARD;
 
 union {
   struct {
@@ -48,6 +50,7 @@ union {
   } lights;
   uint8_t raw[LED_GPIO_SIZE + WS2812B_LED_ZONES * 3];
 } lights_report;
+
 
 /**
  * WS2812B Lighting
@@ -148,7 +151,7 @@ void key_mode() {
       }
 
       tud_hid_mouse_report(REPORT_ID_MOUSE, 0x00, delta[0] * MOUSE_SENS,
-                           delta[1] * MOUSE_SENS, 0, 0);
+                           ENC_GPIO_SIZE > 1 ? delta[1] * MOUSE_SENS : 0, 0, 0);
     }
     // Alternate reports
     kbm_report = !kbm_report;
@@ -236,18 +239,14 @@ void init() {
   // Set up WS2812B
   pio_1 = pio1;
   uint offset2 = pio_add_program(pio_1, &ws2812_program);
-  ws2812_program_init(pio_1, ENC_GPIO_SIZE, offset2, WS2812B_GPIO, 800000,
-                      false);
-
-  // Setup Button GPIO
-  for (int i = 0; i < SW_GPIO_SIZE; i++) {
-    prev_sw_val[i] = false;
-    sw_timestamp[i] = 0;
-    gpio_init(SW_GPIO[i]);
-    gpio_set_function(SW_GPIO[i], GPIO_FUNC_SIO);
+  for (int i = 0; i < sizeof(WS2812B_GPIO) / sizeof(WS2812B_GPIO[0]); i++) {
+    // BUGS: only one ws2812b can be used
     gpio_set_dir(SW_GPIO[i], GPIO_IN);
     gpio_pull_up(SW_GPIO[i]);
+    ws2812_program_init(pio_1, ENC_GPIO_SIZE+i, offset2, WS2812B_GPIO[i], 800000,
+                        false);
   }
+
 
   // Setup LED GPIO
   for (int i = 0; i < LED_GPIO_SIZE; i++) {
@@ -260,19 +259,22 @@ void init() {
 
   // Joy/KB Mode Switching
   if (!gpio_get(SW_GPIO[0])) {
-    loop_mode = &key_mode;
-    joy_mode_check = false;
-  } else {
-    loop_mode = &joy_mode;
+    loop_mode = joy_mode;
     joy_mode_check = true;
+    input_mode = INPUT_MODE_SWITCH;
+  } else {
+    loop_mode = key_mode;
+    joy_mode_check = false;
+    input_mode = INPUT_MODE_KEYBOARD;
   }
 
   // RGB Mode Switching
-  if (!gpio_get(SW_GPIO[1])) {
-    ws2812b_mode = &turbocharger_color_cycle;
-  } else {
+//   if (!gpio_get(SW_GPIO[1])) {
     ws2812b_mode = &ws2812b_color_cycle;
-  }
+//     ws2812b_mode = &turbocharger_color_cycle;
+//   } else {
+//     ws2812b_mode = &turbocharger_color_cycle;
+//   }
 
   // Debouncing Mode
   debounce_mode = &debounce_eager;
@@ -281,6 +283,13 @@ void init() {
   if (gpio_get(SW_GPIO[8])) {
     multicore_launch_core1(core1_entry);
   }
+}
+void hotkey(){
+        if (!gpio_get(SW_GPIO[SW_GPIO_SIZE-1]) == true){
+            //Reboot to Bootloader if last button is pressed
+            // Buttons are pull up, enter when last button is pressed
+            reset_usb_boot(0, 0);
+        }
 }
 
 /**
@@ -293,10 +302,11 @@ int main(void) {
 
   while (1) {
     tud_task();  // tinyusb device task
+    hotkey();
     update_inputs();
     report.buttons = debounce_mode();
     loop_mode();
-    update_lights();
+    //update_lights();
   }
 
   return 0;
