@@ -153,7 +153,7 @@ void key_mode() {
       }
 
       tud_hid_mouse_report(REPORT_ID_MOUSE, 0x00, delta[0] * MOUSE_SENS,
-                           ENC_GPIO_SIZE>1 ? delta[1] * MOUSE_SENS:0, 0, 0);
+                           ENC_GPIO_SIZE > 1 ? delta[1] * MOUSE_SENS : 0, 0, 0);
     }
     // Alternate reports
     kbm_report = !kbm_report;
