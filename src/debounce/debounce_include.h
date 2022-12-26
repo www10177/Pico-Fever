@@ -6,6 +6,7 @@
  * These are saved in report.buttons as truth. Create debounce mode as desired
  * and then add the #include here.
  **/
+#include "general_config.h"
 extern uint64_t sw_timestamp[SW_GPIO_SIZE];
 
 #include "deferred.c"

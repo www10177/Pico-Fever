@@ -1,5 +1,5 @@
-#ifndef CONTROLLER_CONFIG_H
-#define CONTROLLER_CONFIG_H
+#ifndef GENERAL_CONFIG_H
+#define GENERAL_CONFIG_H
 
 #define SW_GPIO_SIZE 16               // Number of switches
 #define LED_GPIO_SIZE 0              // Number of switch LEDs
@@ -15,9 +15,9 @@
 #define WS2812B_LEDS_PER_ZONE \
   WS2812B_LED_SIZE / WS2812B_LED_ZONES  // Number of LEDs per zone
 
-#ifdef PICO_GAME_CONTROLLER_C
 
 // MODIFY KEYBINDS HERE, MAKE SURE LENGTHS MATCH SW_GPIO_SIZE
+
 const uint8_t SW_KEYCODE[] = {HID_KEY_D, HID_KEY_F, HID_KEY_J, HID_KEY_K,
                               HID_KEY_C, HID_KEY_M, HID_KEY_A, HID_KEY_B,
                               HID_KEY_1, HID_KEY_E, HID_KEY_G, HID_KEY_H,
@@ -32,7 +32,6 @@ const bool ENC_REV[] = {false,false};  // Reverse Encoders
 const uint8_t WS2812B_GPIO[] = {26,27}; // WS2812B Data Pin 
 const uint8_t WS2812B_GPIO_COUNT= 2; // COUNT of CONSECUTIVE WS2812B DATA PINS
 
-#endif
 
 extern bool joy_mode_check;
 

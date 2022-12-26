@@ -2,14 +2,12 @@
  * Pico Game Controller
  * @author SpeedyPotato
  */
-#define PICO_GAME_CONTROLLER_C
-
+//Dependencies 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "bsp/board.h"
-#include "controller_config.h"
 #include "encoders.pio.h"
 #include "hardware/clocks.h"
 #include "hardware/dma.h"
@@ -18,12 +16,16 @@
 #include "pico/multicore.h"
 #include "pico/stdlib.h"
 #include "pico/bootrom.h"
-#include "usb_driver/descriptorHelper.h"
+#include "hid/hid.h"
 #include "tusb.h"
-// clang-format off
+
+//Local Libraries
+#include "rotary-encoder/rotaryencoder.h"
 #include "debounce/debounce_include.h"
-#include "ws2812/rgb_include.h"
-// clang-format on
+// #include "ws2812/rgb_include.h"
+
+//Config Headers
+#include "general_config.h"
 
 PIO pio, pio_1;
 uint32_t enc_val[ENC_GPIO_SIZE];
@@ -127,7 +129,8 @@ void joy_mode() {
 void key_mode() {
   if (tud_hid_ready()) {  // Wait for ready, updating mouse too fast hampers
                           // movement
-    if (kbm_report) {
+    // if (kbm_report) {
+    if (true) {
       /*------------- Keyboard -------------*/
       uint8_t nkro_report[32] = {0};
       for (int i = 0; i < SW_GPIO_SIZE; i++) {
@@ -312,37 +315,4 @@ int main(void) {
   }
 
   return 0;
-}
-
-// Invoked when received GET_REPORT control request
-// Application must fill buffer report's content and return its length.
-// Return zero will cause the stack to STALL request
-uint16_t tud_hid_get_report_cb(uint8_t itf, uint8_t report_id,
-                               hid_report_type_t report_type, uint8_t* buffer,
-                               uint16_t reqlen) {
-  // TODO not Implemented
-  (void)itf;
-  (void)report_id;
-  (void)report_type;
-  (void)buffer;
-  (void)reqlen;
-
-  return 0;
-}
-
-// Invoked when received SET_REPORT control request or
-// received data on OUT endpoint ( Report ID = 0, Type = 0 )
-void tud_hid_set_report_cb(uint8_t itf, uint8_t report_id,
-                           hid_report_type_t report_type, uint8_t const* buffer,
-                           uint16_t bufsize) {
-  (void)itf;
-  if (report_id == 2 && report_type == HID_REPORT_TYPE_OUTPUT &&
-      bufsize >= sizeof(lights_report))  // light data
-  {
-    size_t i = 0;
-    for (i; i < sizeof(lights_report); i++) {
-      lights_report.raw[i] = buffer[i];
-    }
-    reactive_timeout_timestamp = time_us_64();
-  }
 }
