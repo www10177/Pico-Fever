@@ -11,14 +11,24 @@
 
 add_executable(Pico_Game_Controller
         pico_game_controller.cpp
-        usb_driver/descriptorHelper.c
+        hid/hid.c
         )
-pico_generate_pio_header(Pico_Game_Controller ${CMAKE_CURRENT_LIST_DIR}/rotary-encoder/encoders.pio)
 pico_generate_pio_header(Pico_Game_Controller ${CMAKE_CURRENT_LIST_DIR}/ws2812/ws2812.pio)
 
 include_directories(Pico_Game_Controller PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 target_sources(Pico_Game_Controller PRIVATE pico_game_controller.cpp)
 # target_link_libraries(usb_descriptors tinyusb_device )#tusb_config)
+
+#Rotary Encoders 
+add_library(rotary STATIC ${CMAKE_CURRENT_LIST_DIR}/rotary-encoder/rotaryencoder.cpp)
+pico_generate_pio_header(rotary ${CMAKE_CURRENT_LIST_DIR}/rotary-encoder/encoders.pio)
+target_link_libraries(rotary PRIVATE 
+        hardware_pio
+        hardware_dma
+        pico_stdlib
+        tinyusb_device
+        tinyusb_board
+)
 
 target_link_libraries(Pico_Game_Controller PRIVATE
         pico_multicore
@@ -28,6 +38,7 @@ target_link_libraries(Pico_Game_Controller PRIVATE
         hardware_pio
         hardware_dma
         hardware_irq
+        rotary
         )
 
 
