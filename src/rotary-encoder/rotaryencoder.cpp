@@ -1,26 +1,33 @@
 #include "rotaryencoder.h"
-// #include "storagemanager.h"
 #include "hardware/dma.h"
 #include "hardware/irq.h"
 #include "hardware/pio.h"
-// #include "BoardConfig.h"
 #include <functional>
+#include <iterator>
 #include "encoders.pio.h"
 #include "pico/time.h"
 
-RotaryInput::RotaryInput()
+RotaryInput::RotaryInput(uint8_t enc_gpio_size, const uint8_t * enc_gpio, bool enc_rev, int debounce_count)
 {
-    enc_gpio_size = sizeof(ENC_GPIO) / sizeof(uint8_t);
-    enc_val = new uint32_t[enc_gpio_size];
-    delta= new uint32_t[enc_gpio_size];
-    prev_enc_val = new uint32_t[enc_gpio_size];
-    direction = new uint8_t [enc_gpio_size];
-    dir_debounced = new uint8_t [enc_gpio_size];
-    dir_debouncing_counter = new uint32_t[enc_gpio_size];
+    // Copy Configurations  
+    this->enc_gpio_size = enc_gpio_size;
+    this->enc_gpio = new uint8_t[enc_gpio_size];
+    std::copy(enc_gpio, enc_gpio + enc_gpio_size, this->enc_gpio);
+    this->enc_rev = enc_rev;
+    this->debounce_count = debounce_count;
+
+
+    // Initialize Variables
+    enc_val = new uint32_t[enc_gpio_size]();
+    delta= new uint32_t[enc_gpio_size]();
+    prev_enc_val = new uint32_t[enc_gpio_size]();
+    direction = new uint8_t [enc_gpio_size]();
+    dir_debounced = new uint8_t [enc_gpio_size]();
+    dir_debouncing_counter = new uint32_t[enc_gpio_size]();
 }
 RotaryInput::~RotaryInput()
 {
-    delete enc_val,prev_enc_val,direction,dir_debounced,dir_debouncing_counter;
+    delete enc_val,delta, prev_enc_val,direction,dir_debounced,dir_debouncing_counter;
 }
 bool RotaryInput::available()
 {
@@ -36,7 +43,7 @@ void RotaryInput::setup()
     {
         enc_val[i], prev_enc_val[i] = 0;
         direction[i], dir_debounced[i], dir_debouncing_counter[i] = 1;
-        encoders_program_init(pio, i, offset, ENC_GPIO[i], ENC_DEBOUNCE_COUNT > 0);
+        encoders_program_init(pio, i, offset, enc_gpio[i], debounce_count> 0);
 
         dma_channel_config c = dma_channel_get_default_config(i);
         channel_config_set_read_increment(&c, false);
@@ -57,16 +64,14 @@ void RotaryInput::setup()
 
 void RotaryInput::process()
 {
-    // Gamepad *gamepad = Storage::getInstance().GetGamepad();
-
     for (int i = 0; i < enc_gpio_size; i++)
     {
         int new_dir;
-        delta[i] = (enc_val[i] - prev_enc_val[i]) * (ENC_REV ? 1 : -1);
+        delta[i] = (enc_val[i] - prev_enc_val[i]) * (enc_rev? 1 : -1);
         if (enc_val[i] > prev_enc_val[i])
-            direction[i] = ENC_REV ? 2 : 0;
+            direction[i] = enc_rev? 2 : 0;
         else if (enc_val[i] < prev_enc_val[i])
-            direction[i] = ENC_REV ? 0 : 2;
+            direction[i] = enc_rev? 0 : 2;
         else
             direction[i] = 1;
 
@@ -74,7 +79,7 @@ void RotaryInput::process()
         // Bouncing only happens when the encoder is turning
         if (direction[i] == 1)
         {
-            if (dir_debouncing_counter[i] > ENC_DEBOUNCE_COUNT)
+            if (dir_debouncing_counter[i] > debounce_count)
             {
                 dir_debounced[i] = 1;
             }

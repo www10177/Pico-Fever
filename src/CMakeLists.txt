@@ -36,7 +36,6 @@ add_custom_command(TARGET Pico_Game_Controller
         COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/src/Pico_Game_Controller.uf2 ${PROJECT_SOURCE_DIR}/build_uf2/Pico_Game_Controller.uf2
 )
 
-# add_custom_command(TARGET Pico_Game_Controller
-#         POST_BUILD
-#         COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/src/Pico_Game_Controller.uf2 E:/Pico_Game_Controller.uf2
-#           COMMENT "Upload to Pico @ E drive")
+    add_custom_command(TARGET Pico_Game_Controller
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/src/Pico_Game_Controller.uf2 E:/Pico_Game_Controller.uf2)

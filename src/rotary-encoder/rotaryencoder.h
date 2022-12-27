@@ -1,16 +1,12 @@
 #ifndef RotaryEncoder_H_
 #define RotaryEncoder_H_
 
-// #include "gpaddon.h"
-// #include "BoardConfig.h"
-#include "hardware/pio.h"
-#include "general_config.h"
 
-// #include "GamepadEnums.h"
+#include "hardware/pio.h"
 
 class RotaryInput  {
 public:
-    RotaryInput();
+    RotaryInput(uint8_t enc_size, const uint8_t * enc_gpio, bool enc_rev, int debounce_count);
     ~RotaryInput();
 
 	bool available();   // GPAddon available
@@ -19,7 +15,13 @@ public:
     uint8_t *dir_debounced ;
     uint32_t *delta;
 private:
+    //Config 
     uint8_t enc_gpio_size ;
+    uint8_t *enc_gpio;
+    bool enc_rev;
+    int debounce_count;
+    
+    //Encoder values 
     uint32_t *enc_val;
     uint32_t *prev_enc_val;
     uint8_t *direction ;

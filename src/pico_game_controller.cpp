@@ -22,38 +22,23 @@
 
 //Local Libraries
 #include "rotary-encoder/rotaryencoder.h"
-#include "debounce/debounce_include.h"
 // #include "ws2812/rgb_include.h"
 
 //Config Headers
 #include "general_config.h"
 
-// PIO pio, pio_1;
-// uint32_t enc_val[ENC_GPIO_SIZE];
-// uint32_t prev_enc_val[ENC_GPIO_SIZE];
-// int cur_enc_val[ENC_GPIO_SIZE];
 
-bool prev_sw_val[SW_GPIO_SIZE];
-uint64_t sw_timestamp[SW_GPIO_SIZE];
-
-bool kbm_report;
-RotaryInput rotary;
+//Rotary Encoder Related 
+bool has_sent_mouse_report = false; // use for report rotary encoder
+RotaryInput rotary(ENC_GPIO_SIZE, ENC_GPIO, ENC_REV, ENC_DBOUNCE_COUNT); 
 
 uint64_t reactive_timeout_timestamp;
 
+// Input Mode Related 
 // void (*ws2812b_mode)(uint32_t);
 void (*loop_mode)();
-uint16_t (*debounce_mode)();
-bool joy_mode_check = true;
 InputMode input_mode = INPUT_MODE_KEYBOARD;
 
-// union {
-//   struct {
-//     uint8_t buttons[LED_GPIO_SIZE];
-//     RGB_t rgb[WS2812B_LED_ZONES];
-//   } lights;
-//   uint8_t raw[LED_GPIO_SIZE + WS2812B_LED_ZONES * 3];
-// } lights_report;
 
 
 /**
@@ -61,7 +46,7 @@ InputMode input_mode = INPUT_MODE_KEYBOARD;
  * @param counter Current number of WS2812B cycles
  **/
 // void ws2812b_update(uint32_t counter) {
-//   if (time_us_64() - reactive_timeout_timestamp >= REACTIVE_TIMEOUT_MAX) {
+//   if (time_us_64() - reactive_timeout_timestamp >= OUT_MAX) {
 //     ws2812b_mode(counter);
 //   } else {
 //     for (int i = 0; i < WS2812B_LED_ZONES; i++) {
@@ -74,32 +59,7 @@ InputMode input_mode = INPUT_MODE_KEYBOARD;
 //   }
 // }
 
-/**
- * HID/Reactive Lights
- **/
-// void update_lights() {
-//   for (int i = 0; i < LED_GPIO_SIZE; i++) {
-//     if (time_us_64() - reactive_timeout_timestamp >= REACTIVE_TIMEOUT_MAX) {
-//       if (!gpio_get(SW_GPIO[i])) {
-//         gpio_put(LED_GPIO[i], 1);
-//       } else {
-//         gpio_put(LED_GPIO[i], 0);
-//       }
-//     } else {
-//       if (lights_report.lights.buttons[i] == 0) {
-//         gpio_put(LED_GPIO[i], 0);
-//       } else {
-//         gpio_put(LED_GPIO[i], 1);
-//       }
-//     }
-//   }
-// }
 
-struct report {
-  uint16_t buttons;
-  uint8_t joy0;
-  uint8_t joy1;
-} report;
 
 // /**
 //  * Gamepad Mode
@@ -128,37 +88,41 @@ struct report {
 /**
  * Keyboard Mode
  **/
-void key_mode() {
-  if (tud_hid_ready()) {  // Wait for ready, updating mouse too fast hampers
-                          // movement
-    if (kbm_report) {
-    // if (true) {
-      /*------------- Keyboard -------------*/
-      uint8_t nkro_report[32] = {0};
-      for (int i = 0; i < SW_GPIO_SIZE; i++) {
-        if ((report.buttons >> i) % 2 == 1) {
-          uint8_t bit = SW_KEYCODE[i] % 8;
-          uint8_t byte = (SW_KEYCODE[i] / 8) + 1;
-          if (SW_KEYCODE[i] >= 240 && SW_KEYCODE[i] <= 247) {
-            nkro_report[0] |= (1 << bit);
-          } else if (byte > 0 && byte <= 31) {
-            nkro_report[byte] |= (1 << bit);
-          }
-        }
-      }
-      tud_hid_n_report(0x00, REPORT_ID_KEYBOARD, &nkro_report,
-                       sizeof(nkro_report));
-    } else {
+void key_mouse_input()
+{
+  if (tud_hid_ready()) { 
 
-    rotary.process();
-    // MOUSE: convenient helper to send mouse report if application
-    // use template layout report as defined by hid_mouse_report_t
-    //tud_hid_mouse_report(uint8_t report_id, uint8_t buttons, int8_t x, int8_t y, int8_t vertical, int8_t horizontal);
-    tud_hid_mouse_report(REPORT_ID_MOUSE, 0x00, rotary.delta[0] * 1,
-                         rotary.delta[1] * 1, 0, 0);
-    }
-    // Alternate reports
-    kbm_report = !kbm_report;
+      rotary.process();
+      if (rotary.delta[0] + rotary.delta[1] >0 && !has_sent_mouse_report){
+        // send mouse report when rotary encoder is moved and not sent last round 
+          tud_hid_mouse_report(REPORT_ID_MOUSE, 0x00, rotary.delta[0] * MOUSE_SENS,
+                               rotary.delta[1] * MOUSE_SENS, 0, 0);
+            has_sent_mouse_report = true;
+
+      }
+      else {
+          /*------------- Keyboard -------------*/
+          uint8_t nkro_report[32] = {0};
+          for (int i = 0; i < SW_GPIO_SIZE; i++)
+          {
+              if ((buttons >> i) % 2 == 1)
+              {
+                  uint8_t bit = SW_KEYCODE[i] % 8;
+                  uint8_t byte = (SW_KEYCODE[i] / 8) + 1;
+                  if (SW_KEYCODE[i] >= 240 && SW_KEYCODE[i] <= 247)
+                  {
+                      nkro_report[0] |= (1 << bit);
+                  }
+                  else if (byte > 0 && byte <= 31)
+                  {
+                      nkro_report[byte] |= (1 << bit);
+                  }
+              }
+          }
+            has_sent_mouse_report = false;
+          tud_hid_n_report(0x00, REPORT_ID_KEYBOARD, &nkro_report,
+                           sizeof(nkro_report));
+      }
   }
 }
 
@@ -188,18 +152,29 @@ void core1_entry() {
   }
 }
 
+/** 
+ ** modified variables to corresponding mode 
+ **/
+void switch_mode(){
+  // mode Checking 
+  if (input_mode == INPUT_MODE_KEYBOARD){
+    loop_mode = key_mouse_input;
+  }
+
+}
+
+
+
+
 /**
  * Initialize Board Pins
  **/
 void init() {
-  // LED Pin on when connected
+  // Light on onboard LED when connected
   gpio_init(25);
   gpio_set_dir(25, GPIO_OUT);
   gpio_put(25, 1);
 
-  // Set up the state machine for encoders
-//   pio = pio0;
-//   uint offset = pio_add_program(pio, &encoders_program);
 
 
   reactive_timeout_timestamp = time_us_64();
@@ -216,19 +191,7 @@ void init() {
 //   }
 
 
-  // Setup LED GPIO
-//   for (int i = 0; i < LED_GPIO_SIZE; i++) {
-//     gpio_init(LED_GPIO[i]);
-//     gpio_set_dir(LED_GPIO[i], GPIO_OUT);
-//   }
-
-  // Set listener bools
-  kbm_report = false;
-
-  // Joy/KB Mode Switching
-    loop_mode = key_mode;
-    joy_mode_check = false;
-    input_mode = INPUT_MODE_KEYBOARD;
+    switch_mode();
 
   // RGB Mode Switching
 //   if (!gpio_get(SW_GPIO[1])) {
@@ -245,7 +208,11 @@ void init() {
 //   if (gpio_get(SW_GPIO[8])) {
 //     multicore_launch_core1(core1_entry);
 //   }
+
+  // Setup Rotary Encoder
+  rotary.setup();
 }
+
 void hotkey(){
         if (!gpio_get(SW_GPIO[SW_GPIO_SIZE-1]) == true){
             //Reboot to Bootloader if last button is pressed
@@ -262,16 +229,15 @@ int main(void) {
   init();
   hotkey();
   tusb_init();
-  rotary.setup();
   
 
 
   while (1) {
     hotkey();
-    tud_task();  // tinyusb device task
     update_inputs();
-    report.buttons = debounce_mode();
+    buttons = debounce_mode();
     loop_mode();
+    tud_task();  // tinyusb device task
 
 
     //update_lights();
