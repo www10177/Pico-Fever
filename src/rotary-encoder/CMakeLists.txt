@@ -13,7 +13,7 @@
 #Rotary Encoders 
 add_library(rotary STATIC rotaryencoder.cpp )
 pico_generate_pio_header(rotary ${CMAKE_CURRENT_LIST_DIR}/encoders.pio)
-include_directories(PICO_GAME_CONTROLLER PRIVATE ${CMAKE_CURRENT_LIST_DIR})
+# include_directories(PICO_GAME_CONTROLLER PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 target_link_libraries(rotary PRIVATE 
         hardware_pio
         hardware_dma

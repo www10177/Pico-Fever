@@ -6,14 +6,12 @@
 
 class RotaryInput  {
 public:
-    RotaryInput(uint8_t enc_size, const uint8_t * enc_gpio, bool enc_rev, int debounce_count);
+    RotaryInput(uint8_t enc_size, const uint8_t *enc_gpio, bool enc_rev, int debounce_count);
     ~RotaryInput();
 
-	bool available();   // GPAddon available
-	void setup();       // Analog Setup
-	void process();     // Analog Process
-    uint8_t *dir_debounced ;
-    uint32_t *delta;
+	void update();     // Analog Process
+    uint8_t *dir_debounced ; // 1 for non-spin; 0 for ccw; 2 for cw ; used for digital output
+    uint32_t *delta; // delta compared to previous time; used for analog 
 private:
     //Config 
     uint8_t enc_gpio_size ;

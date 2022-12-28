@@ -24,18 +24,7 @@ RotaryInput::RotaryInput(uint8_t enc_gpio_size, const uint8_t * enc_gpio, bool e
     direction = new uint8_t [enc_gpio_size]();
     dir_debounced = new uint8_t [enc_gpio_size]();
     dir_debouncing_counter = new uint32_t[enc_gpio_size]();
-}
-RotaryInput::~RotaryInput()
-{
-    delete enc_val,delta, prev_enc_val,direction,dir_debounced,dir_debouncing_counter;
-}
-bool RotaryInput::available()
-{
-    return enc_gpio_size> 0;
-}
 
-void RotaryInput::setup()
-{
     // Setup Encoders
     PIO pio = pio0;
     uint offset = pio_add_program(pio, &encoders_program);
@@ -61,8 +50,12 @@ void RotaryInput::setup()
         dma_channel_set_irq0_enabled(i, true);
     }
 }
+RotaryInput::~RotaryInput()
+{
+    delete enc_val,delta, prev_enc_val,direction,dir_debounced,dir_debouncing_counter;
+}
 
-void RotaryInput::process()
+void RotaryInput::update()
 {
     for (int i = 0; i < enc_gpio_size; i++)
     {
