@@ -32,7 +32,7 @@
 // HID Device Descriptor
 //--------------------------------------------------------------------+
 
-tusb_desc_device_t const desc_device_key = {
+tusb_desc_device_t const keyboard_device_descriptor= {
     .bLength = sizeof(tusb_desc_device_t),
     .bDescriptorType = TUSB_DESC_DEVICE,
     .bcdUSB = 0x0200,
@@ -51,12 +51,11 @@ tusb_desc_device_t const desc_device_key = {
 
     .bNumConfigurations = 0x01};
 
+
 //--------------------------------------------------------------------+
 // HID Report Descriptor
 //--------------------------------------------------------------------+
-
-
-uint8_t const desc_hid_report_key[] = {
+uint8_t const keyboard_report_descriptor[] = {
     // GAMECON_REPORT_DESC_LIGHTS(HID_REPORT_ID(REPORT_ID_LIGHTS)),
     GAMECON_REPORT_DESC_NKRO(HID_REPORT_ID(REPORT_ID_KEYBOARD)),
     TUD_HID_REPORT_DESC_MOUSE(HID_REPORT_ID(REPORT_ID_MOUSE))
@@ -67,7 +66,7 @@ uint8_t const desc_hid_report_key[] = {
 //--------------------------------------------------------------------+
 
 
-uint8_t const desc_configuration_key[] = {
+uint8_t const keyboard_configuration_descriptor[] = {
     // Config number, interface count, string index, total length, attribute,
     // power in mA
     TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN,
@@ -76,7 +75,7 @@ uint8_t const desc_configuration_key[] = {
     // Interface number, string index, protocol, report descriptor len, EP In
     // address, size & polling interval
     TUD_HID_DESCRIPTOR(ITF_NUM_HID, 0, HID_ITF_PROTOCOL_NONE,
-                       sizeof(desc_hid_report_key), EPNUM_HID,
+                       sizeof(keyboard_device_descriptor), EPNUM_HID,
                        CFG_TUD_HID_EP_BUFSIZE, 1)
                        };
 
@@ -85,11 +84,11 @@ uint8_t const desc_configuration_key[] = {
 //--------------------------------------------------------------------+
 
 // array of pointer to string descriptors
-char const* string_desc_arr_key[] = {
+char const* keyboard_string_descriptor[] = {
     (const char[]){0x09, 0x04},  // 0: is supported language is English (0x0409)
     "Rist",              // 1: Manufacturer
-    "Virgoo Fever Mod.",      // 2: Product
-    "123456",                    // 3: Serials, should use chip ID
+    "Virgoo Fever Mod. (Keyboard)",      // 2: Product
+    "20221229",                    // 3: Serials, should use chip ID
 };
 
 

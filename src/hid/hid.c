@@ -8,20 +8,25 @@
 // #include "descriptorHelper.h"
 #include "hid.h"
 #include "KeyboardDescriptors.h"
+#include "SwitchDescriptors.h"
+#include "XInputDescriptors.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
+extern InputMode input_mode;
 
 //--------------------------------------------------------------------+
 // HID Deivce Descriptor
 //--------------------------------------------------------------------+
 // Invoked when received GET DEVICE DESCRIPTOR
 // Application return pointer to descriptor
-extern InputMode input_mode;
 uint8_t const* tud_descriptor_device_cb(void) {
 
   if (input_mode == INPUT_MODE_KEYBOARD) {
-    return (uint8_t const*) &desc_device_key;
+    return (uint8_t const*) &keyboard_device_descriptor;
+  }
+  else if (input_mode == INPUT_MODE_SWITCH) {
+    return switch_device_descriptor;
   }
 }
 
@@ -35,7 +40,10 @@ uint8_t const* tud_descriptor_device_cb(void) {
 uint8_t const* tud_hid_descriptor_report_cb(uint8_t itf) {
   (void)itf;
   if (input_mode == INPUT_MODE_KEYBOARD) {
-        return desc_hid_report_key;
+        return keyboard_report_descriptor;
+  }
+  else if (input_mode == INPUT_MODE_SWITCH) {
+    return switch_report_descriptor;
   }
 }
 
@@ -49,7 +57,10 @@ uint8_t const* tud_hid_descriptor_report_cb(uint8_t itf) {
 uint8_t const* tud_descriptor_configuration_cb(uint8_t index) {
   (void)index;  // for multiple configurations
   if (input_mode == INPUT_MODE_KEYBOARD) {
-  return  desc_configuration_key;
+  return  keyboard_configuration_descriptor;
+  }
+  else if (input_mode == INPUT_MODE_SWITCH){
+    return switch_configuration_descriptor;
   }
 }
 
@@ -68,7 +79,10 @@ uint16_t const *tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
     uint8_t chr_count;
     char** string_desc_arr;
     if (input_mode == INPUT_MODE_KEYBOARD) {
-        string_desc_arr = &string_desc_arr_key[0];
+        string_desc_arr = &keyboard_string_descriptor[0];
+    }
+    else if (input_mode == INPUT_MODE_SWITCH) {
+        string_desc_arr = &switch_string_descriptor[0];
     }
     if (index == 0)
     {
