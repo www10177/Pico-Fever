@@ -75,7 +75,7 @@ uint8_t const keyboard_configuration_descriptor[] = {
     // Interface number, string index, protocol, report descriptor len, EP In
     // address, size & polling interval
     TUD_HID_DESCRIPTOR(ITF_NUM_HID, 0, HID_ITF_PROTOCOL_NONE,
-                       sizeof(keyboard_device_descriptor), EPNUM_HID,
+                       sizeof(keyboard_report_descriptor), EPNUM_HID,
                        CFG_TUD_HID_EP_BUFSIZE, 1)
                        };
 
@@ -87,7 +87,7 @@ uint8_t const keyboard_configuration_descriptor[] = {
 char const* keyboard_string_descriptor[] = {
     (const char[]){0x09, 0x04},  // 0: is supported language is English (0x0409)
     "Rist",              // 1: Manufacturer
-    "Virgoo Fever Mod. (Keyboard)",      // 2: Product
+    "Pico Fever(KB)",      // 2: Product
     "20221229",                    // 3: Serials, should use chip ID
 };
 

@@ -100,12 +100,11 @@ void init() {
 }
 
 void startup_hotkeys() {
-  if (!gpio_get(SW_GPIO[SW_GPIO_SIZE - 1]) == true)
-  {
-    // Reboot to Bootloader if last button is pressed
     //  Buttons are pull up, enter when last button is pressed
-    reset_usb_boot(0, 0);
-  }
+  if (!gpio_get(BOOTSEL_STARTUP_GPIO) == true) reset_usb_boot(0, 0);
+  else if (!gpio_get(SWITCH_STARTUP_GPIO) == true) input_mode = INPUT_MODE_SWITCH;
+  else if (!gpio_get(XINPUT_STARTUP_GPIO) == true) input_mode = INPUT_MODE_XINPUT;
+  else if (!gpio_get(KEYBOARD_STARTUP_GPIO) == true) input_mode = INPUT_MODE_KEYBOARD;
 }
 
 /**
@@ -120,7 +119,7 @@ int main(void) {
 
 
   while (1) {
-    startup_hotkeys();
+    // startup_hotkeys();
     gamepad.update_inputs();
     gamepad.debounce();
     generate_report();

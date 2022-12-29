@@ -13,10 +13,18 @@ const uint8_t SW_GPIO[] = {
 
 // Keycodes Binding 
 // MODIFY KEYBINDS HERE, MAKE SURE LENGTHS MATCH SW_GPIO_SIZE
-const uint8_t SW_KEYCODE[] = {HID_KEY_D, HID_KEY_F, HID_KEY_J, HID_KEY_K,
-                              HID_KEY_C, HID_KEY_M, HID_KEY_A, HID_KEY_B,
-                              HID_KEY_1, HID_KEY_E, HID_KEY_G, HID_KEY_H,
-                              HID_KEY_2,HID_KEY_3,HID_KEY_4,HID_KEY_5};
+const uint8_t SW_KEYCODE[] = {HID_KEY_D, HID_KEY_R, HID_KEY_F, HID_KEY_G,
+                              HID_KEY_J, HID_KEY_I, HID_KEY_K, 
+                              HID_KEY_ARROW_UP, HID_KEY_ARROW_DOWN, 
+                              HID_KEY_Z, HID_KEY_SHIFT_LEFT, HID_KEY_SHIFT_RIGHT, HID_KEY_SLASH,
+                              HID_KEY_ARROW_LEFT,HID_KEY_ARROW_RIGHT,
+                              HID_KEY_ESCAPE};
+
+//Start Hotkey 
+#define BOOTSEL_STARTUP_GPIO  0 // GPIO pin for startup hotkey in bootloader more
+#define KEYBOARD_STARTUP_GPIO  2 // GPIO pin for startup hotkey in keyboard mode
+#define SWITCH_STARTUP_GPIO  4 // GPIO pin for startup hotkey in keyboard mode
+#define XINPUT_STARTUP_GPIO  6 // GPIO pin for startup hotkey in keyboard mode
 
 // LED GPIOs                              
 // #define LED_GPIO_SIZE 0              // Number of switch LEDs

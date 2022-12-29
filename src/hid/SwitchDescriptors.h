@@ -70,7 +70,7 @@ typedef struct
 char const* switch_string_descriptor[] = {
     (const char[]){0x09, 0x04},  // 0: is supported language is English (0x0409)
     "Rist",              // 1: Manufacturer
-    "Virgoo Fever Mod. (Keyboard)",      // 2: Product
+    "Pico Fever(NS)",      // 2: Product
     "20221229",                    // 3: Serials, should use chip ID
 };
 
