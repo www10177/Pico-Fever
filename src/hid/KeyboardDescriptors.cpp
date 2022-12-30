@@ -1,9 +1,9 @@
-#ifndef USB_DESCRIPTORS_H_
-#define USB_DESCRIPTORS_H_
+// #ifndef KEYBOARD_DESCRIPTORS_H_
+// #define KEYBOARD_DESCRIPTORS_H_
 
 #include "device/usbd.h"
 // #include "descriptorHelper.h"
-#include "../general_config.h"
+// #include "general_config.h"
 // #include "controller_config.h"
 // #include "tusb.h"
 
@@ -92,4 +92,4 @@ char const* keyboard_string_descriptor[] = {
 };
 
 
-#endif /* USB_DESCRIPTORS_H_ */
+// #endif /* USB_DESCRIPTORS_H_ */

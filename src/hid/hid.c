@@ -1,7 +1,8 @@
 #include "hid.h"
-#include "KeyboardDescriptors.h"
-#include "SwitchDescriptors.h"
-#include "XInputDescriptors.h"
+#include "descriptors.h"
+// #include "KeyboardDescriptors.h"
+// #include "SwitchDescriptors.h"
+// #include "XInputDescriptors.h"
 #ifdef __cplusplus
 extern "C"
 {
