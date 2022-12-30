@@ -6,8 +6,9 @@
 #include "device/usbd_pvt.h"
 #include "general_config.h"
 #include "rotaryencoder.h"
-#include "SwitchDescriptors.h"
-#include "XInputDescriptors.h"
+// #include "SwitchDescriptors.h"
+// #include "XInputDescriptors.h"
+#include "report.h"
 #include "button.h"
 
 extern InputMode input_mode;
