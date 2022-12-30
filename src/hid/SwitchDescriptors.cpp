@@ -5,6 +5,7 @@
 
 // #ifndef SWITCH_DESCRIPTORS_H
 // #define SWITCH_DESCRIPTORS_H
+#include "descriptors.h"
 #include <stdint.h>
 
 // static const uint8_t switch_string_language[]     = { 0x09, 0x04 };
@@ -27,7 +28,7 @@ char const* switch_string_descriptor[] = {
 // 	switch_string_version
 // };
 
-static const uint8_t switch_device_descriptor[] =
+const uint8_t switch_device_descriptor[] =
 {
 	0x12,        // bLength
 	0x01,        // bDescriptorType (Device)
@@ -45,7 +46,7 @@ static const uint8_t switch_device_descriptor[] =
 	0x01,        // bNumConfigurations 1
 };
 
-static const uint8_t switch_hid_descriptor[] =
+const uint8_t switch_hid_descriptor[] =
 {
 	0x09,        // bLength
 	0x21,        // bDescriptorType (HID)
@@ -56,7 +57,7 @@ static const uint8_t switch_hid_descriptor[] =
 	0x56, 0x00,  // wDescriptorLength[0] 86
 };
 
-static const uint8_t switch_configuration_descriptor[] =
+const uint8_t switch_configuration_descriptor[] =
 {
 	0x09,        // bLength
 	0x02,        // bDescriptorType (Configuration)
@@ -100,7 +101,7 @@ static const uint8_t switch_configuration_descriptor[] =
 	0x01,        // bInterval 1 (unit depends on device speed)
 };
 
-static const uint8_t switch_report_descriptor[] =
+const uint8_t switch_report_descriptor[] =
 {
 	0x05, 0x01,        // Usage Page (Generic Desktop Ctrls)
 	0x09, 0x05,        // Usage (Game Pad)

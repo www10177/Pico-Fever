@@ -4,6 +4,7 @@
  */
 // #ifndef XINPUT_DESCRIPTORS_H
 // #define XINPUT_DESCRIPTORS_H
+#include "descriptors.h"
 
 #include <stdint.h>
 
@@ -33,7 +34,7 @@ char const* xinput_string_descriptor[] = {
     "1.0",                    // 3: Serials, should use chip ID
 };
 
-static const uint8_t xinput_device_descriptor[] =
+const uint8_t xinput_device_descriptor[] =
 {
 	0x12,       // bLength
 	0x01,       // bDescriptorType (Device)
@@ -51,7 +52,7 @@ static const uint8_t xinput_device_descriptor[] =
 	0x01,       // bNumConfigurations 1
 };
 
-static const uint8_t xinput_configuration_descriptor[] =
+const uint8_t xinput_configuration_descriptor[] =
 {
 	0x09,        // bLength
 	0x02,        // bDescriptorType (Configuration)
@@ -145,7 +146,7 @@ static const uint8_t xinput_configuration_descriptor[] =
 // 	0xC0,              // End Collection
 // };
 
-static const uint8_t xinput_report_descriptor[] =
+ const uint8_t xinput_report_descriptor[] =
 {
 	0x05, 0x01,        // USAGE_PAGE (Generic Desktop)
 	0x09, 0x05,        // USAGE (Gamepad)
