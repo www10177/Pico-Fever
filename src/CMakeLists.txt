@@ -8,11 +8,13 @@ add_executable(Pico_Game_Controller
 pico_generate_pio_header(Pico_Game_Controller ${CMAKE_CURRENT_LIST_DIR}/ws2812/ws2812.pio)
 
 include_directories(Pico_Game_Controller PRIVATE ${CMAKE_CURRENT_LIST_DIR})
-target_sources(Pico_Game_Controller PRIVATE pico_game_controller.cpp)
+include_directories(Pico_Game_Controller PRIVATE ${CMAKE_CURRENT_LIST_DIR}/hid)
 
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/rotary-encoder)
+
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/hid)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/gamepad)
+
+target_sources(Pico_Game_Controller PRIVATE pico_game_controller.cpp)
 
 
 target_link_libraries(Pico_Game_Controller PRIVATE
@@ -24,7 +26,6 @@ target_link_libraries(Pico_Game_Controller PRIVATE
         hardware_dma
         hardware_irq
         hid
-        rotary
         gamepad
         )
 

@@ -6,15 +6,16 @@
 #include <iterator>
 #include "encoders.pio.h"
 #include "pico/time.h"
+#include "general_config.h"
 
-RotaryInput::RotaryInput(uint8_t enc_gpio_size, const uint8_t * enc_gpio, bool enc_rev, int debounce_count)
+RotaryInput::RotaryInput()//uint8_t enc_gpio_size, const uint8_t * enc_gpio, bool enc_rev, int debounce_count)
 {
     // Copy Configurations  
-    this->enc_gpio_size = enc_gpio_size;
+    this->enc_gpio_size = ENC_GPIO_SIZE;
     this->enc_gpio = new uint8_t[enc_gpio_size];
-    std::copy(enc_gpio, enc_gpio + enc_gpio_size, this->enc_gpio);
-    this->enc_rev = enc_rev;
-    this->debounce_count = debounce_count;
+    std::copy(ENC_GPIO, ENC_GPIO+ enc_gpio_size, this->enc_gpio);
+    this->enc_rev = ENC_REV;
+    this->debounce_count = ENC_DEBOUNCE_COUNT;
 
 
     // Initialize Variables

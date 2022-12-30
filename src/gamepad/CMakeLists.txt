@@ -1,9 +1,13 @@
 #Buttons
-add_library(gamepad STATIC gamepad.cpp)
-target_link_libraries(gamepad PRIVATE 
-        # hardware_gpio
+add_library(gamepad STATIC gamepad.cpp rotaryencoder.cpp)
+pico_generate_pio_header(gamepad ${CMAKE_CURRENT_LIST_DIR}/encoders.pio)
+target_include_directories(gamepad PUBLIC ${CMAKE_CURRENT_LIST_DIR}/../hid/)
+target_include_directories(gamepad PUBLIC ${CMAKE_CURRENT_LIST_DIR}/../)
+target_link_libraries(gamepad 
+        hardware_pio
+        hardware_dma
+        tinyusb_board
+        tinyusb_device
         pico_stdlib
-        # tinyusb_device
-        # tinyusb_board
+        hid
 )
-# include_directories(gamepad PRIVATE ${CMAKE_CURRENT_LIST_DIR}/gamepad)

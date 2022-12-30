@@ -6,7 +6,7 @@
 
 class RotaryInput  {
 public:
-    RotaryInput(uint8_t enc_size, const uint8_t *enc_gpio, bool enc_rev, int debounce_count);
+    RotaryInput();//uint8_t enc_size, const uint8_t *enc_gpio, bool enc_rev, int debounce_count);
     ~RotaryInput();
 
 	void update();     // Analog Process
