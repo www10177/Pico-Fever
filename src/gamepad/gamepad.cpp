@@ -4,12 +4,16 @@
 #include "hid.h"
 #include "tusb.h"
 #include "device/usbd_pvt.h"
+// #include "config_include.h"
 #include "general_config.h"
+// #include "Profiles.h"
+// #include "KeyboardProfiles.h"
 #include "rotaryencoder.h"
 // #include "SwitchDescriptors.h"
 // #include "XInputDescriptors.h"
 #include "report.h"
 #include "buttons.h"
+#include "pico/bootrom.h"
 
 extern InputMode input_mode;
 // RotaryInput rotary = RotaryInput::RotaryInput(ENC_GPIO_SIZE, ENC_GPIO, ENC_REV, ENC_DBOUNCE_COUNT); 
@@ -30,41 +34,37 @@ uint8_t endpoint_out = 0;
 #define XINPUT_OUT_SIZE 32
 uint8_t xinput_out_buffer[XINPUT_OUT_SIZE] = { };
 
-Gamepad::Gamepad()//int gpio_size, const uint8_t *sw_gpio, int debounce_us)
-{
-    // Assign Variables
-    this->gpio_size = SW_GPIO_SIZE;
-    this->sw_gpio = new uint8_t[gpio_size];
-    std::copy(SW_GPIO, SW_GPIO+ gpio_size, this->sw_gpio);
-    this->debounce_us = SW_DEBOUNCE_TIME_US;
-    std::copy(SWITCH_BUTTON,SWITCH_BUTTON+gpio_size, this->button_mapping);
+Gamepad::Gamepad(Profile* profiles, int profile_count) {
 
-    // Allocate variables
-    prev_sw_val = new bool[gpio_size]();
-    sw_timestamp = new uint64_t[gpio_size]();
+    // Assing profile
+    this-> profiles = profiles;
+    this-> profile_count= profile_count;
+    this->profile_index = 0;
+    this->profileNow = &this->profiles[profile_index]; 
 
     // initialize variables
-    for (int i = 0; i < gpio_size; i++)
+    for (int i = 0; i < BTN_GPIO_SIZE; i++)
     {
         prev_sw_val[i] = false;
         sw_timestamp[i] = 0;
     }
-    rotary = new RotaryInput();//ENC_GPIO_SIZE, ENC_GPIO, ENC_REV, ENC_DBOUNCE_COUNT); 
+
+    rotary = new RotaryInput();
 }
 
 Gamepad::~Gamepad()
 {
-    delete sw_gpio, prev_sw_val, sw_timestamp, rotary;
+    delete rotary;
 }
 
 
 void Gamepad::debounce()
 {
     debounced_btn= 0;
-    for (int i = gpio_size - 1; i >= 0; i--)
+    for (int i = BTN_GPIO_SIZE- 1; i >= 0; i--)
     {
-        if (time_us_64() - sw_timestamp[i] <= debounce_us ||
-            !gpio_get(sw_gpio[i]))
+        if (time_us_64() - sw_timestamp[i] <= BTN_DEBOUNCE_TIME_US||
+            !gpio_get(BTN_GPIO[i]))
         {
             debounced_btn= (debounced_btn << 1) | 1;
         }
@@ -80,12 +80,12 @@ void Gamepad::debounce()
  * Note: Switches are pull up, negate value
  **/
 void Gamepad::update_inputs() {
-  for (int i = 0; i < gpio_size; i++) {
+  for (int i = 0; i < BTN_GPIO_SIZE; i++) {
     // If switch gets pressed, record timestamp
-    if (prev_sw_val[i] == false && !gpio_get(sw_gpio[i]) == true) {
+    if (prev_sw_val[i] == false && !gpio_get(BTN_GPIO[i]) == true) {
       sw_timestamp[i] = time_us_64();
     }
-    prev_sw_val[i] = !gpio_get(sw_gpio[i]);
+    prev_sw_val[i] = !gpio_get(BTN_GPIO[i]);
   }
 }
 
@@ -100,20 +100,15 @@ void Gamepad::send_keyboard_report()
       else {
         // Sent keyboard report 
         std::fill(std::begin(keyboardReport), std::end(keyboardReport), 0);
-        for (int i = 0; i < gpio_size; i++)
+        uint8_t* button_mapping = isBaseLayer? profileNow->base_layer_btn: profileNow->append_layer_btn;
+
+        for (int i = 0; i < BTN_GPIO_SIZE; i++)
         {
             if ((debounced_btn>> i) % 2 == 1)
             {
-                uint8_t bit = KEYCODE[i] % 8;
-                uint8_t byte = (KEYCODE[i] / 8) + 1;
-                if (KEYCODE[i] >= 240 && KEYCODE[i] <= 247)
-                {
-                    keyboardReport[0] |= (1 << bit);
-                }
-                else if (byte > 0 && byte <= 31)
-                {
-                    keyboardReport[byte] |= (1 << bit);
-                }
+                uint8_t bit = button_mapping[i] % 8;
+                uint8_t byte = (button_mapping[i] / 8) + 1;
+                if (byte > 0 && byte <= 31) keyboardReport[byte] |= (1 << bit);
             }
         }
 
@@ -129,10 +124,10 @@ void Gamepad::send_switch_report(){
     switchReport.ly = SWITCH_JOYSTICK_MID;
     switchReport.rx = SWITCH_JOYSTICK_MID;
     switchReport.ry = SWITCH_JOYSTICK_MID;
-
     switchReport.buttons = 0;
 
-    for (int i = 0; i < gpio_size; i++)
+    uint8_t* button_mapping = isBaseLayer? profileNow->base_layer_btn: profileNow->append_layer_btn;
+    for (int i = 0; i < BTN_GPIO_SIZE; i++)
     {
         if ((debounced_btn >> i) % 2 == 1)
         {   
@@ -141,14 +136,12 @@ void Gamepad::send_switch_report(){
                 // Hat Button
                 // Save Hat Status First, Convert to report later
                 // Shift 0~3 bit for up down left right
-
                 hat_status |= (1U << button_mapping[i]);
             }
-            else {
-                // Button
-                // Direct convert to report, shifting number as defined enum 
-
-                switchReport.buttons |= (1U << (button_mapping[i] -SWITCH_BUTTON_BASE));
+            else if (button_mapping[i] >= SWITCH_Y && button_mapping[i] <= SWITCH_CAPTURE){
+                // Buttons
+                // Direct convert to report, shifting number with pre-defined enum 
+                switchReport.buttons |= (1U << (button_mapping[i] -SWITCH_Y));
             }
 
             // switchReport.hat = SWITCH_HAT_DOWN;
@@ -221,4 +214,40 @@ void Gamepad::send_report(){
   }
 
 }
-
+void Gamepad::change_profile(int new_index){    
+    // Index Bounding Checking 
+    this->profile_index = (new_index+profile_count) % profile_count; // add profile count to make sure it is positive
+    // this->profile_index = new_index; // add profile count to make sure it is positive
+    this->profileNow = &profiles[new_index];
+    this->isProfileUpdated = true;
+}
+void Gamepad::handle_func_btn(){
+    uint8_t* button_mapping = isBaseLayer? profileNow->base_layer_btn: profileNow->append_layer_btn;
+    for (int i = 0; i < BTN_GPIO_SIZE; i++)
+    {
+        if ((debounced_btn >> i) % 2 == 1) {   
+            // Button is pressed
+            switch (button_mapping[i]){
+                case FN_NEXT_PROFILE:
+                    // this->change_profile(profile_index+1); // Bounding Checking in change_profile
+                    this->change_profile(1); // Bounding Checking in change_profile
+                    break;
+                case FN_PREV_PROFILE:
+                    // this->change_profile(profile_index-1); // Bounding Checking in change_profile
+                    this->change_profile(0); // Bounding Checking in change_profile
+                    break;
+                case FN_BOOTSEL:
+                    reset_usb_boot(0, 0);
+                    break;
+                case FN_APPEND_LAYER:
+                    this->isBaseLayer = false;
+                    break;
+                case FN_TRANSPARENT:
+                    button_mapping[i] = this->profileNow->base_layer_btn[i]; // modified the button mapping to base layer 
+                    break;
+                default :
+                    break;
+            }
+        }
+    }
+}

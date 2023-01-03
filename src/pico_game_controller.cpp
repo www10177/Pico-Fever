@@ -5,6 +5,9 @@
  * 
  */
 //Dependencies 
+    #include <string>
+    #include <iostream>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -32,12 +35,13 @@
 //Config Headers
 #include "pico-ssd1306/ssd1306.h"
 #include "general_config.h"
+#include "Profiles.h"
 
 
 // Global Variables 
 bool has_sent_mouse_report = false; // use for rotary encoder mouse report
 InputMode input_mode = INPUT_MODE_SWITCH;
-Gamepad gamepad;//SW_GPIO_SIZE, SW_GPIO, SW_DEBOUNCE_TIME_US);
+Gamepad* gamepad = new Gamepad(SwitchProfiles, SWITCH_PROFILE_COUNT); // Make sure the initial profile is matching to initial input mode
 // void (*generate_report)(); // function pointer for usb report generation
 pico_ssd1306::SSD1306 *display ;
 // InputMode input_mode = INPUT_MODE_KEYBOARD;
@@ -80,18 +84,34 @@ void startup_hotkeys() {
   else if (!gpio_get(XINPUT_STARTUP_GPIO) == true) input_mode = INPUT_MODE_XINPUT;
   else if (!gpio_get(KEYBOARD_STARTUP_GPIO) == true) input_mode = INPUT_MODE_KEYBOARD;
 }
-void update_display() {
-  display->clear();
-  // First 16 rows are yellow
+void update_display(Gamepad* gamepad) {
+  // Only update display when gamepad profile is updated
+  if (gamepad->isProfileUpdated){ 
+    display->clear();
 
-  drawText(display, font_8x8, "Pico Fever",10, 4);
-  switch (input_mode) {
-    case INPUT_MODE_KEYBOARD: drawText(display, font_12x16, "Mode: KB ", 0, 18); break;
-    case INPUT_MODE_SWITCH: drawText(display, font_12x16, "Mode: NS ", 0, 18); break;
-    default: drawText(display, font_12x16, "Mode: DEFAULT ", 0, 18); break;
+    // Start Drawing
+    // First 16 rows are yellow (of my oled module)
+    // ssd1306 is oled screen with pixel size = 128x64
+    drawText(display, font_8x8, "Pico Fever", 10, 4);
+    switch (input_mode)
+    {
+    case INPUT_MODE_KEYBOARD:
+            drawText(display, font_12x16, "Mode: KB ", 0, 18);
+            break;
+    case INPUT_MODE_SWITCH:
+            drawText(display, font_12x16, "Mode: NS ", 0, 18);
+            break;
+    default:
+            drawText(display, font_12x16, "Mode: DEFAULT ", 0, 18);
+            break;
+    }
+    drawText(display, font_8x8, gamepad->profileNow->name, 0, 35);
+    int profile_count = gamepad->profile_count; // add profile count to make sure it is positive
+    drawText(display, font_8x8, std::to_string(profile_count).c_str(), 0, 50);
+
+    display->sendBuffer();
+    gamepad->isProfileUpdated = false;
   }
-
-  display->sendBuffer();
 }
 
 /**
@@ -103,13 +123,15 @@ int main(void) {
     init();
     startup_hotkeys();
     tusb_init();
-    if (I2C_DISPLAY_ENABLED ) update_display();
+    // if (I2C_DISPLAY_ENABLED ) update_display(gamepad);
     while (true)
     {
-        // if (!gpio_get(BOOTSEL_STARTUP_GPIO) == true) reset_usb_boot(0, 0);
-        gamepad.update_inputs();
-        gamepad.debounce();
-        gamepad.send_report();
+        if (I2C_DISPLAY_ENABLED ) update_display(gamepad);
+        if (!gpio_get(BOOTSEL_STARTUP_GPIO) == true) reset_usb_boot(0, 0);
+        gamepad->update_inputs();
+        gamepad->debounce();
+        gamepad->handle_func_btn();
+        gamepad->send_report();
         tud_task(); // tinyusb device task
 
         // update_lights();

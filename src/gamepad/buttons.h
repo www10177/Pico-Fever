@@ -1,8 +1,7 @@
-#ifndef BUTTON_H
-#define BUTTON_H
+#ifndef BUTTONS_H
+#define BUTTONS_H
 
 // Make sure to use corresponding button define file for your input mode
-
 // enum value matters! used for report generating
 
 #define XINPUT_BUTTON2_BASE 8
@@ -32,7 +31,7 @@ typedef enum
     XINPUT_RT,
 } XinputButton;
 
-#define SWITCH_BUTTON_BASE 4
+// #define SWITCH_BUTTON_BASE 4
 typedef enum
 {
     SWITCH_NONE = -1,
@@ -57,12 +56,18 @@ typedef enum
     SWITCH_HOME = 16,
     SWITCH_CAPTURE = 17,
 } SwitchButton;
+
+// Special keys that only used in firmware
+// Start from 0xF0 to avoid collision of hid key code
 typedef enum
 {
-    SP_BOOTSEL=0xF0,
-    SP_NEXT_MODE,
-    SP_PREV_MODE,
-} SpecialKeys;
+    FN_BOOTSEL=0xF0,
+    FN_TRANSPARENT, // use key of base layer
+    FN_APPEND_LAYER, // momentarily switch to append layer while the key is pressed
+    // FN_LAYER_SWITCH, // switch to append layer 
+    FN_PREV_PROFILE,
+    FN_NEXT_PROFILE,
+} FunctionKeys;
 
 
 #endif
