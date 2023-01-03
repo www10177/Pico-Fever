@@ -10,7 +10,7 @@ public:
     // static RotaryInput rotary;//(ENC_GPIO_SIZE, ENC_GPIO, ENC_REV, ENC_DBOUNCE_COUNT); 
     RotaryInput* rotary;//(ENC_GPIO_SIZE, ENC_GPIO, ENC_REV, ENC_DBOUNCE_COUNT); 
 
-    uint32_t debounced_btn=0;
+    uint16_t debounced_btn=0;
     uint8_t button_mapping[SW_GPIO_SIZE];
     uint16_t LX=0;
     uint16_t LY=0;
@@ -34,7 +34,7 @@ private:
 
     // Class Members
     // static RotaryInput rotary(ENC_GPIO_SIZE, ENC_GPIO, ENC_REV, ENC_DBOUNCE_COUNT); 
-    uint32_t button_pressed = 0; // Gamepad Pressed Now
+    // uint32_t button_pressed = 0; // Gamepad Pressed Now
     bool *prev_sw_val;
     uint64_t *sw_timestamp;
     bool has_sent_mouse_report = false; // only used in keyboard mode

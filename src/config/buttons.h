@@ -57,5 +57,12 @@ typedef enum
     SWITCH_HOME = 16,
     SWITCH_CAPTURE = 17,
 } SwitchButton;
+typedef enum
+{
+    SP_BOOTSEL=0xF0,
+    SP_NEXT_MODE,
+    SP_PREV_MODE,
+} SpecialKeys;
+
 
 #endif

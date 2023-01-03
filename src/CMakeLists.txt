@@ -9,10 +9,12 @@ pico_generate_pio_header(Pico_Game_Controller ${CMAKE_CURRENT_LIST_DIR}/ws2812/w
 
 include_directories(Pico_Game_Controller PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 include_directories(Pico_Game_Controller PRIVATE ${CMAKE_CURRENT_LIST_DIR}/hid)
+include_directories(Pico_Game_Controller PRIVATE ${CMAKE_CURRENT_LIST_DIR}/config)
 
 
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/hid)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/gamepad)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/pico-ssd1306)
 
 target_sources(Pico_Game_Controller PRIVATE pico_game_controller.cpp)
 
@@ -27,6 +29,8 @@ target_link_libraries(Pico_Game_Controller PRIVATE
         hardware_irq
         hid
         gamepad
+        pico_ssd1306
+        hardware_i2c
         )
 
 

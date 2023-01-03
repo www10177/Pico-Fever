@@ -9,7 +9,7 @@
 // #include "SwitchDescriptors.h"
 // #include "XInputDescriptors.h"
 #include "report.h"
-#include "button.h"
+#include "buttons.h"
 
 extern InputMode input_mode;
 // RotaryInput rotary = RotaryInput::RotaryInput(ENC_GPIO_SIZE, ENC_GPIO, ENC_REV, ENC_DBOUNCE_COUNT); 
@@ -33,7 +33,7 @@ uint8_t xinput_out_buffer[XINPUT_OUT_SIZE] = { };
 Gamepad::Gamepad()//int gpio_size, const uint8_t *sw_gpio, int debounce_us)
 {
     // Assign Variables
-    this->gpio_size = ENC_GPIO_SIZE;
+    this->gpio_size = SW_GPIO_SIZE;
     this->sw_gpio = new uint8_t[gpio_size];
     std::copy(SW_GPIO, SW_GPIO+ gpio_size, this->sw_gpio);
     this->debounce_us = SW_DEBOUNCE_TIME_US;
@@ -54,7 +54,7 @@ Gamepad::Gamepad()//int gpio_size, const uint8_t *sw_gpio, int debounce_us)
 
 Gamepad::~Gamepad()
 {
-    delete sw_gpio, prev_sw_val, sw_timestamp;
+    delete sw_gpio, prev_sw_val, sw_timestamp, rotary;
 }
 
 
@@ -96,41 +96,41 @@ void Gamepad::send_keyboard_report()
           tud_hid_mouse_report(REPORT_ID_MOUSE, 0x00, rotary->delta[0] * MOUSE_SENS,
                                rotary->delta[1] * MOUSE_SENS, 0, 0);
             has_sent_mouse_report = true;
-
       }
       else {
         // Sent keyboard report 
-          this->debounce();
-          std::fill(std::begin(keyboardReport), std::end(keyboardReport), 0);
+        std::fill(std::begin(keyboardReport), std::end(keyboardReport), 0);
+        for (int i = 0; i < gpio_size; i++)
+        {
+            if ((debounced_btn>> i) % 2 == 1)
+            {
+                uint8_t bit = KEYCODE[i] % 8;
+                uint8_t byte = (KEYCODE[i] / 8) + 1;
+                if (KEYCODE[i] >= 240 && KEYCODE[i] <= 247)
+                {
+                    keyboardReport[0] |= (1 << bit);
+                }
+                else if (byte > 0 && byte <= 31)
+                {
+                    keyboardReport[byte] |= (1 << bit);
+                }
+            }
+        }
 
-          for (int i = 0; i < gpio_size; i++)
-          {
-              if ((debounced_btn>> i) % 2 == 1)
-              {
-                  uint8_t bit = KEYCODE[i] % 8;
-                  uint8_t byte = (KEYCODE[i] / 8) + 1;
-                  if (KEYCODE[i] >= 240 && KEYCODE[i] <= 247)
-                  {
-                      keyboardReport[0] |= (1 << bit);
-                  }
-                  else if (byte > 0 && byte <= 31)
-                  {
-                      keyboardReport[byte] |= (1 << bit);
-                  }
-              }
-          }
-            has_sent_mouse_report = false;
-          tud_hid_n_report(0x00, REPORT_ID_KEYBOARD, &keyboardReport,
-                           sizeof(keyboardReport));
+        has_sent_mouse_report = false;
+        tud_hid_n_report(0x00, REPORT_ID_KEYBOARD, &keyboardReport,
+                        sizeof(keyboardReport));
       }
 }
+
 void Gamepad::send_switch_report(){
     uint8_t hat_status = 0;
-    switchReport.buttons = 0;
     switchReport.lx = SWITCH_JOYSTICK_MID;
     switchReport.ly = SWITCH_JOYSTICK_MID;
     switchReport.rx = SWITCH_JOYSTICK_MID;
     switchReport.ry = SWITCH_JOYSTICK_MID;
+
+    switchReport.buttons = 0;
 
     for (int i = 0; i < gpio_size; i++)
     {
@@ -141,14 +141,18 @@ void Gamepad::send_switch_report(){
                 // Hat Button
                 // Save Hat Status First, Convert to report later
                 // Shift 0~3 bit for up down left right
+
                 hat_status |= (1U << button_mapping[i]);
             }
             else {
                 // Button
                 // Direct convert to report, shifting number as defined enum 
-                switchReport.buttons |= 1U << (button_mapping[i] -SWITCH_BUTTON_BASE);
+
+                switchReport.buttons |= (1U << (button_mapping[i] -SWITCH_BUTTON_BASE));
             }
 
+            // switchReport.hat = SWITCH_HAT_DOWN;
+            // switchReport.buttons= SWITCH_MASK_A;
         }
     }
 
@@ -166,6 +170,7 @@ void Gamepad::send_switch_report(){
     }
     this->__send_joypad_report(&switchReport, sizeof(switchReport));
 }
+
 void Gamepad::__send_joypad_report(void *report, uint16_t report_size) {
 	static uint8_t previous_report[CFG_TUD_ENDPOINT0_SIZE] = { };
 
@@ -192,6 +197,7 @@ void Gamepad::__send_joypad_report(void *report, uint16_t report_size) {
             default:
                 if (tud_hid_ready())
                     sent = tud_hid_report(0 , report, report_size);// 0 for reportid 
+                else sent = false;
                 break;
 		}
 

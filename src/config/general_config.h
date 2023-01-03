@@ -1,7 +1,8 @@
 #ifndef GENERAL_CONFIG_H
 #define GENERAL_CONFIG_H
+#include "SwitchProfiles.h"
 #include "tusb.h" // include for hid key
-#include "button.h" // include for joypad (NS,XBOX) buttons
+#include "buttons.h" // include for joypad (NS,XBOX) buttons
 
 
 
@@ -14,20 +15,19 @@ const uint8_t SW_GPIO[] = {
 
 // Keycodes Binding 
 // MODIFY KEYBINDS HERE, MAKE SURE LENGTHS MATCH SW_GPIO_SIZE
-const uint8_t KEYCODE[] = {HID_KEY_D, HID_KEY_R, HID_KEY_F, HID_KEY_G,
-                              HID_KEY_J, HID_KEY_I, HID_KEY_K, 
+// const uint8_t KEYCODE[] = {HID_KEY_D, HID_KEY_R, HID_KEY_F, HID_KEY_G,
+//                               HID_KEY_J, HID_KEY_I, HID_KEY_K, 
+//                               HID_KEY_ARROW_UP, HID_KEY_ARROW_DOWN, 
+//                               HID_KEY_Z, HID_KEY_SHIFT_LEFT, HID_KEY_SHIFT_RIGHT, HID_KEY_SLASH,
+//                               HID_KEY_ARROW_LEFT,HID_KEY_ARROW_RIGHT,
+//                               HID_KEY_ESCAPE};
+const uint8_t KEYCODE[] = {HID_KEY_S, HID_KEY_D, HID_KEY_F, HID_KEY_ENTER,
+                              HID_KEY_J, HID_KEY_K, HID_KEY_L, 
                               HID_KEY_ARROW_UP, HID_KEY_ARROW_DOWN, 
-                              HID_KEY_Z, HID_KEY_SHIFT_LEFT, HID_KEY_SHIFT_RIGHT, HID_KEY_SLASH,
+                              HID_KEY_SHIFT_LEFT, HID_KEY_SPACE, HID_KEY_SPACE, HID_KEY_SHIFT_RIGHT,
                               HID_KEY_ARROW_LEFT,HID_KEY_ARROW_RIGHT,
                               HID_KEY_ESCAPE};
 
-// Switch Button Binding
-const uint8_t SWITCH_BUTTON[] = {SWITCH_LEFT,SWITCH_UP,SWITCH_RIGHT,SWITCH_B,
-                                 SWITCH_Y, SWITCH_X, SWITCH_A,
-                                 SWITCH_L3,SWITCH_R3,
-                                 SWITCH_ZL,SWITCH_L,SWITCH_R,SWITCH_ZR,
-                                 SWITCH_MINUS,SWITCH_PLUS,
-                                 SWITCH_HOME};
 
 //Start Hotkey 
 #define BOOTSEL_STARTUP_GPIO  0 // GPIO pin for startup hotkey in bootloader more
@@ -57,6 +57,14 @@ const bool ENC_REV = false;  // Reverse Encoders
 const uint8_t WS2812B_GPIO[] = {26,27}; // WS2812B Data Pin 
 const uint8_t WS2812B_GPIO_COUNT= 2; // COUNT of CONSECUTIVE WS2812B DATA PINS
 
+// I2C OLED  Display Related (Using SSD1306 Controller)
+#define I2C_DISPLAY_ENABLED true     // Enable I2C Display
+#define I2C_DISPLAY_ORIENTATION 0         // 0 or 1; Change this if display is upside down
+#define I2C_DISPLAY_ADDRESS 0x3C      // I2C Address of the display
+#define I2C_DISPLAY_SDA 16 // SDA Pin
+#define I2C_DISPLAY_SCL 17 // SCL Pin
+#define I2C_DISPLAY_RATE 800000 // I2C Rate
+#define I2C_DISPLAY_ADDRESS 0x3C // I2C Address of the display
 
 
 #endif

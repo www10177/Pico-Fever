@@ -3,7 +3,7 @@
 
 #include "device/usbd.h"
 // #include "descriptorHelper.h"
-#include "../general_config.h"
+// #include "general_config.h"
 // #include "controller_config.h"
 // #include "tusb.h"
 
