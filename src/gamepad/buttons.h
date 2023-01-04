@@ -58,7 +58,9 @@ typedef enum
 } SwitchButton;
 
 // Special keys that only used in firmware
-// Start from 0xF0 to avoid collision of hid key code
+// Start from 0xF0 and ends with 0xFF to avoid collision of hid key code
+// FN_BOOTSEL(0xF0) and FN_NEXT_PROFILE(0xFF) are used in key checking
+// so make sure to put them in the start and end of the enum if you want to add more function keys
 typedef enum
 {
     FN_BOOTSEL=0xF0,
@@ -66,7 +68,7 @@ typedef enum
     FN_APPEND_LAYER, // momentarily switch to append layer while the key is pressed
     // FN_LAYER_SWITCH, // switch to append layer 
     FN_PREV_PROFILE,
-    FN_NEXT_PROFILE,
+    FN_NEXT_PROFILE=0xFF, 
 } FunctionKeys;
 
 

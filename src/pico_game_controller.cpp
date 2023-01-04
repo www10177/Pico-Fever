@@ -37,7 +37,6 @@
 #include "general_config.h"
 #include "Profiles.h"
 
-
 // Global Variables 
 bool has_sent_mouse_report = false; // use for rotary encoder mouse report
 InputMode input_mode = INPUT_MODE_SWITCH;
@@ -92,22 +91,20 @@ void update_display(Gamepad* gamepad) {
     // Start Drawing
     // First 16 rows are yellow (of my oled module)
     // ssd1306 is oled screen with pixel size = 128x64
-    drawText(display, font_8x8, "Pico Fever", 10, 4);
-    switch (input_mode)
-    {
-    case INPUT_MODE_KEYBOARD:
-            drawText(display, font_12x16, "Mode: KB ", 0, 18);
-            break;
-    case INPUT_MODE_SWITCH:
-            drawText(display, font_12x16, "Mode: NS ", 0, 18);
-            break;
-    default:
-            drawText(display, font_12x16, "Mode: DEFAULT ", 0, 18);
-            break;
+    std::string title = "Pico Fever | ";
+    switch (input_mode) {
+        case INPUT_MODE_KEYBOARD: title += "KB"; break;
+        case INPUT_MODE_SWITCH: title  += "NS"; break;
+        default: title += "DE"; break;
     }
-    drawText(display, font_8x8, gamepad->profileNow->name, 0, 35);
-    int profile_count = gamepad->profile_count; // add profile count to make sure it is positive
-    drawText(display, font_8x8, std::to_string(profile_count).c_str(), 0, 50);
+    drawText(display, font_8x8, title.c_str(), 0, 4); // Title 
+    int context_y0 = 18;
+    drawText(display, font_8x8, gamepad->profileNow->name, 0, context_y0);
+    int number= gamepad->isBaseLayer; // add profile count to make sure it is positive
+    // int number= sizeof(gamepad->profiles); // add profile count to make sure it is positive
+    drawText(display, font_8x8, std::to_string(number).c_str(), 0, context_y0 + 10);
+    // number= sizeof(gamepad->profiles[0]); // add profile count to make sure it is positive
+    // drawText(display, font_8x8, std::to_string(number).c_str(), 0, context_y0 + 20);
 
     display->sendBuffer();
     gamepad->isProfileUpdated = false;
@@ -126,12 +123,11 @@ int main(void) {
     // if (I2C_DISPLAY_ENABLED ) update_display(gamepad);
     while (true)
     {
-        if (I2C_DISPLAY_ENABLED ) update_display(gamepad);
         if (!gpio_get(BOOTSEL_STARTUP_GPIO) == true) reset_usb_boot(0, 0);
         gamepad->update_inputs();
         gamepad->debounce();
-        gamepad->handle_func_btn();
         gamepad->send_report();
+        if (I2C_DISPLAY_ENABLED ) update_display(gamepad);
         tud_task(); // tinyusb device task
 
         // update_lights();

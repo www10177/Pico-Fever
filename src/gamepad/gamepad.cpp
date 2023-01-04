@@ -34,11 +34,12 @@ uint8_t endpoint_out = 0;
 #define XINPUT_OUT_SIZE 32
 uint8_t xinput_out_buffer[XINPUT_OUT_SIZE] = { };
 
-Gamepad::Gamepad(Profile* profiles, int profile_count) {
+Gamepad::Gamepad(Profile profiles[], int profile_count) { 
 
-    // Assing profile
+    // Assing profile 
     this-> profiles = profiles;
     this-> profile_count= profile_count;
+    // this-> profile_count= sizeof(profiles) / sizeof(profiles[0]); // cannot calculate arr size from pointer
     this->profile_index = 0;
     this->profileNow = &this->profiles[profile_index]; 
 
@@ -131,7 +132,14 @@ void Gamepad::send_switch_report(){
     {
         if ((debounced_btn >> i) % 2 == 1)
         {   
+            if (button_mapping[i] == FN_TRANSPARENT){
+                button_mapping[i] = this->profileNow->base_layer_btn[i]; // modified the button mapping to base layer 
+            }
+            
+
+
             if (button_mapping[i] == SWITCH_NONE) continue;
+            
             else if (button_mapping[i] <= SWITCH_LEFT ){
                 // Hat Button
                 // Save Hat Status First, Convert to report later
@@ -142,6 +150,10 @@ void Gamepad::send_switch_report(){
                 // Buttons
                 // Direct convert to report, shifting number with pre-defined enum 
                 switchReport.buttons |= (1U << (button_mapping[i] -SWITCH_Y));
+            }
+            else if (button_mapping[i] >= FN_BOOTSEL && button_mapping[i] <= FN_NEXT_PROFILE){
+                this->handle_func_btn(button_mapping[i]);
+                // Functions Btns 
             }
 
             // switchReport.hat = SWITCH_HAT_DOWN;
@@ -201,6 +213,19 @@ void Gamepad::__send_joypad_report(void *report, uint16_t report_size) {
 void Gamepad::send_report(){
   if (tud_hid_ready()) { 
       rotary->update();
+
+      // Checking if append layer btn is pressed
+      isBaseLayer = true; //reset the flag
+      this->isProfileUpdated = true;
+        for (int i = 0; i < BTN_GPIO_SIZE; i++)
+        {
+            if ((debounced_btn>> i) % 2 == 1 && this->profileNow->base_layer_btn[i] == FN_APPEND_LAYER) {
+                // Only checking base layer button mapping to avoid the situation that append layer key is not set corrected 
+                this->isBaseLayer = false;
+                break;
+            }
+        }
+
       switch (input_mode)
       {
         case INPUT_MODE_KEYBOARD:
@@ -217,37 +242,27 @@ void Gamepad::send_report(){
 void Gamepad::change_profile(int new_index){    
     // Index Bounding Checking 
     this->profile_index = (new_index+profile_count) % profile_count; // add profile count to make sure it is positive
-    // this->profile_index = new_index; // add profile count to make sure it is positive
-    this->profileNow = &profiles[new_index];
+    this->profileNow = &profiles[profile_index];
     this->isProfileUpdated = true;
 }
-void Gamepad::handle_func_btn(){
-    uint8_t* button_mapping = isBaseLayer? profileNow->base_layer_btn: profileNow->append_layer_btn;
-    for (int i = 0; i < BTN_GPIO_SIZE; i++)
-    {
-        if ((debounced_btn >> i) % 2 == 1) {   
-            // Button is pressed
-            switch (button_mapping[i]){
-                case FN_NEXT_PROFILE:
-                    // this->change_profile(profile_index+1); // Bounding Checking in change_profile
-                    this->change_profile(1); // Bounding Checking in change_profile
-                    break;
-                case FN_PREV_PROFILE:
-                    // this->change_profile(profile_index-1); // Bounding Checking in change_profile
-                    this->change_profile(0); // Bounding Checking in change_profile
-                    break;
-                case FN_BOOTSEL:
-                    reset_usb_boot(0, 0);
-                    break;
-                case FN_APPEND_LAYER:
-                    this->isBaseLayer = false;
-                    break;
-                case FN_TRANSPARENT:
-                    button_mapping[i] = this->profileNow->base_layer_btn[i]; // modified the button mapping to base layer 
-                    break;
-                default :
-                    break;
-            }
-        }
+void Gamepad::handle_func_btn(uint8_t key){
+    switch (key){
+        case FN_NEXT_PROFILE:
+            this->change_profile(profile_index+1); // Bounding Checking in change_profile
+            sleep_ms(200); // sleep to prevent double press
+            return ;break;
+        case FN_PREV_PROFILE:
+            this->change_profile(profile_index-1); // Bounding Checking in change_profile
+            sleep_ms(200); // sleep to prevent double press
+            return ;break;
+        case FN_BOOTSEL:
+            reset_usb_boot(0, 0);
+            return ;break;
+        case FN_APPEND_LAYER:
+            // this->isBaseLayer = false;
+            // not handle with it in this function
+            break;
+        default :
+            break;
     }
 }

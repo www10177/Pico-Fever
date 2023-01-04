@@ -20,7 +20,7 @@ public:
     bool isProfileUpdated = true;
     int profile_index= 0;
 
-    Gamepad(Profile* profiles, int profile_count);//int gpio_size, const uint8_t *sw_gpio, int debounce_us);
+    Gamepad(Profile profiles[], int profile_count);//int gpio_size, const uint8_t *sw_gpio, int debounce_us);
     ~Gamepad();
 
     // Methods
@@ -45,7 +45,7 @@ public:
     void __send_joypad_report(void *report, uint16_t report_size) ;
     void send_switch_report();
     void send_keyboard_report();
-    void handle_func_btn(); // Handle with Function button 
+    void handle_func_btn(uint8_t btn); // Handle with Function button 
 
 };
 #endif 
