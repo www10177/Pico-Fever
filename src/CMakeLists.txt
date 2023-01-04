@@ -42,7 +42,7 @@ add_custom_command(TARGET Pico_Game_Controller
         COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/src/Pico_Game_Controller.uf2 ${PROJECT_SOURCE_DIR}/build_uf2/Pico_Game_Controller.uf2
 )
 
-set(PICO_DEST "H:/")  
+set(PICO_DEST "E:/")  
 # Configure this to your pico drive, comment out to disable auto upload
 
 if (DEFINED PICO_DEST)

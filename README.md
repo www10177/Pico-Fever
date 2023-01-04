@@ -25,8 +25,14 @@ Currently working/fixed:
 
 TODO:
 
-- Store last mode in flash memory (probably implement into above TODO if possible) https://www.raspberrypi.org/forums/viewtopic.php?t=305570
-- store configuration settings in a text file? consider implementing littlefs https://github.com/littlefs-project/littlefs https://www.raspberrypi.org/forums/viewtopic.php?t=313009 https://www.raspberrypi.org/forums/viewtopic.php?p=1894014#p1894014
+- Multi Rotary Mode
+- XInput
+- Config Memorization
+- Re-construct CMakeLists
+- WS2812B Supported
+- Better display
+- let auxiliary features run on second core
+- fix the situation that zero or one encoder 
 
 How to Use:
 

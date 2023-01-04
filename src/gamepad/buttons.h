@@ -63,13 +63,26 @@ typedef enum
 // so make sure to put them in the start and end of the enum if you want to add more function keys
 typedef enum
 {
-    FN_BOOTSEL=0xF0,
+    FN_BOOTSEL=0xF0, // reset to pico bootloader mode to flash 
     FN_TRANSPARENT, // use key of base layer
     FN_APPEND_LAYER, // momentarily switch to append layer while the key is pressed
     // FN_LAYER_SWITCH, // switch to append layer 
     FN_PREV_PROFILE,
     FN_NEXT_PROFILE=0xFF, 
 } FunctionKeys;
+
+typedef enum
+{
+    KB_MOUSE_X, // as mouse 
+    KB_MOUSE_Y, // as mouse 
+    KB_ARROW_LR, // as Left and right arrow keys
+    KB_ARROW_UD, // as up and down jarrow keys
+    JOY_LEFT_X, //  as X axis of left joystick 
+    JOY_LEFT_Y, //  as Y axis of left joystick 
+    JOY_RIGHT_X, // as X axis right joystick
+    JOY_RIGHT_Y, // as Y axis right joystick
+    DISABLE_ROTARY, 
+} RotaryMode;
 
 
 #endif
