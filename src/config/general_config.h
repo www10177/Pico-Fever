@@ -52,9 +52,9 @@ const bool ENC_REV = false;  // Reverse Encoders
 
 typedef struct {
     const char* name="Default Profile";
+    const char* helperText="None";
     uint8_t base_layer_btn[BTN_GPIO_SIZE]; // keycodes for base layer
     uint8_t append_layer_btn[BTN_GPIO_SIZE]; // keycodes for append layer, switch to append layer by pressing user defined button
-    const char* helperText="None";
     RotaryMode rotary_mode[ENC_GPIO_SIZE]; // rotary mode for each encoder
 }Profile;
 

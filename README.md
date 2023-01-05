@@ -33,6 +33,7 @@ TODO:
 - Better display
 - let auxiliary features run on second core
 - fix the situation that zero or one encoder 
+- re-check lib dependencies
 
 How to Use:
 

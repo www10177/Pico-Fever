@@ -46,19 +46,20 @@ Profile SwitchProfiles[SWITCH_PROFILE_COUNT] = {
 Profile KBProfiles[KB_PROFILE_COUNT] = {
     {// Profile 1
      .name= "DJMAX",
+     .helperText = "test"
      .base_layer_btn= {HID_KEY_S, HID_KEY_D, HID_KEY_F, HID_KEY_ENTER,
                               HID_KEY_J, HID_KEY_K, HID_KEY_L, 
                               HID_KEY_ARROW_UP, HID_KEY_ARROW_DOWN, 
                               HID_KEY_SHIFT_LEFT, HID_KEY_SPACE, HID_KEY_SPACE, HID_KEY_SHIFT_RIGHT,
                               HID_KEY_ARROW_LEFT,HID_KEY_ARROW_RIGHT,
                               FN_APPEND_LAYER},
-     .append_layer_btn= {FN_TRANSPARENT, FN_TRANSPARENT, FN_TRANSPARENT, HID_KEY_ESCAPE,
-                             FN_TRANSPARENT, FN_TRANSPARENT, FN_TRANSPARENT,
+     .append_layer_btn= {FN_TRANSPARENT, HID_KEY_TAB, FN_TRANSPARENT, HID_KEY_ESCAPE,
+                             FN_TRANSPARENT, HID_KEY_F9, FN_TRANSPARENT,
                              FN_TRANSPARENT, FN_TRANSPARENT,
                              FN_TRANSPARENT, FN_TRANSPARENT, FN_TRANSPARENT, FN_TRANSPARENT,
                              FN_BOOTSEL,FN_BOOTSEL,
                              FN_APPEND_LAYER},
-     .helperText = "test"
+      .rotary_mode = {KB_MOUSE_X, KB_MOUSE_Y}
     },
 };
 
