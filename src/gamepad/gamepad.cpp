@@ -95,70 +95,120 @@ void Gamepad::update_inputs()
 
 void Gamepad::send_keyboard_report()
 {
+    // Initialize
     int mouse_x, mouse_y = 0;
-    // for (int i = 0; i< ENC_GPIO_SIZE; i++){
-    //     switch (this->profileNow)
-    // }
-    if (rotary->delta[0] + rotary->delta[1] > 0 && !has_sent_mouse_report)
-    {
-        if (!has_sent_mouse_report)
-        {
-            // send mouse report when rotary encoder is moved and not sent mouse report last round
-            tud_hid_mouse_report(REPORT_ID_MOUSE, 0x00, rotary->delta[0] * MOUSE_SENS,
-                                 rotary->delta[1] * MOUSE_SENS, 0, 0);
-            has_sent_mouse_report = true;
+    std::fill(std::begin(keyboardReport), std::end(keyboardReport), 0); // cleanup keyboard report
+    uint8_t *button_mapping = isBaseLayer ? profileNow->base_layer_btn : profileNow->append_layer_btn;
+    uint8_t arrow_triggerd[4] = {HID_KEY_NONE, HID_KEY_NONE,HID_KEY_NONE, HID_KEY_NONE}; // up, down, left, right; used for rotary UDLR, saved kb arrow keycode if triggered
+
+
+    // Get Rotary Data
+    for (int i = 0; i < ENC_GPIO_SIZE; i++) {
+        // send mouse report when rotary encoder is moved and not sent mouse report last round
+        switch(this->profileNow->rotary_mode[i]){
+            case KB_MOUSE_X:
+                mouse_x += rotary->delta[i]*MOUSE_SENS;
+                break;
+            case KB_MOUSE_Y:
+                mouse_y += rotary->delta[i]*MOUSE_SENS;
+                break;
+            case KB_ARROW_UD:
+                arrow_triggered[0] |= (rotary->dir_debounced[i] == 0?HID_KEY_ARROW_UP:HID_KEY_NONE);//CCW-spin
+                arrow_triggered[1] |= (rotary->dir_debounced[i] == 2?HID_KEY_ARROW_DOWN:HID_KEY_NONE);//CW-spin
+                break;
+            case KB_ARROW_LR:
+                arrow_triggered[2] |= (rotary->dir_debounced[i] == 0?HID_KEY_ARROW_LEFT:HID_KEY_NONE);//CCW-spin
+                arrow_triggered[3] |= (rotary->dir_debounced[i] == 2?HID_KEY_ARROW_RIGHT:HID_KEY_NONE);//CW-spin
+                break;
         }
+    }
+
+    //Rotary: add triggered arrow keycode to keyboard report
+    for (int i = 0; i < 4; i++) {
+        if (arrow_triggered[i] != HID_KEY_NONE) {
+            uint8_t bit = arrow_triggered[i] % 8;
+            uint8_t byte = (arrow_triggered[i] / 8) + 1;
+            if (byte > 0 && byte <= 31) keyboardReport[byte] |= (1 << bit);
+        }
+    }
+
+    // Get Button Data
+    for (int i = 0; i < BTN_GPIO_SIZE; i++) {
+        if ((debounced_btn >> i) % 2 == 1) {
+                if (button_mapping[i] == FN_TRANSPARENT) {
+                    button_mapping[i] = this->profileNow->base_layer_btn[i]; // modified the button mapping to base layer
+                }
+
+                if (button_mapping[i] >= FN_BOOTSEL && button_mapping[i] <= FN_NEXT_PROFILE) {
+                    // Functions Btns 
+                    this->handle_func_btn(button_mapping[i]);}
+                else {
+                    uint8_t bit = button_mapping[i] % 8;
+                    uint8_t byte = (button_mapping[i] / 8) + 1;
+                    if (byte > 0 && byte <= 31) keyboardReport[byte] |= (1 << bit);
+                }
+        }
+    }
+
+    // take turns to sent mouse report and button report 
+    if (!has_sent_mouse_report) {
+        tud_hid_mouse_report(REPORT_ID_MOUSE, 0x00, mouse_x,
+                            mouse_y, 0, 0);
+        has_sent_mouse_report = true;
     }
     else
     {
-        // Sent keyboard report
-        std::fill(std::begin(keyboardReport), std::end(keyboardReport), 0);
-        uint8_t *button_mapping = isBaseLayer ? profileNow->base_layer_btn : profileNow->append_layer_btn;
-
-        for (int i = 0; i < BTN_GPIO_SIZE; i++)
-        {
-            if ((debounced_btn >> i) % 2 == 1)
-            {
-            if (button_mapping[i] == FN_TRANSPARENT)
-            {
-                button_mapping[i] = this->profileNow->base_layer_btn[i]; // modified the button mapping to base layer
-            }
-
-            if (button_mapping[i] >= FN_BOOTSEL && button_mapping[i] <= FN_NEXT_PROFILE){
-                this->handle_func_btn(button_mapping[i]);
-                // Functions Btns
-
-            }
-            else {
-                uint8_t bit = button_mapping[i] % 8;
-                uint8_t byte = (button_mapping[i] / 8) + 1;
-                if (byte > 0 && byte <= 31)
-                    keyboardReport[byte] |= (1 << bit);
-
-            }
-
-
-
-
-            }
-        }
-
-        has_sent_mouse_report = false;
         tud_hid_n_report(0x00, REPORT_ID_KEYBOARD, &keyboardReport,
                          sizeof(keyboardReport));
+        has_sent_mouse_report = false;
     }
 }
 
 void Gamepad::send_switch_report()
 {
+
+    //Initialization
     uint8_t hat_status = 0;
     switchReport.lx = SWITCH_JOYSTICK_MID;
     switchReport.ly = SWITCH_JOYSTICK_MID;
     switchReport.rx = SWITCH_JOYSTICK_MID;
     switchReport.ry = SWITCH_JOYSTICK_MID;
     switchReport.buttons = 0;
-
     uint8_t *button_mapping = isBaseLayer ? profileNow->base_layer_btn : profileNow->append_layer_btn;
+
+    //Rotary Data
+    for (int i = 0; i < ENC_GPIO_SIZE; i++) {
+        // send mouse report when rotary encoder is moved and not sent mouse report last round
+        switch(this->profileNow->rotary_mode[i]){
+            case JOY_LEFT_X:
+                if (rotary->dir_debounced[i] == 0) //ccw
+                    switchReport.lx = SWITCH_JOYSTICK_MIN;
+                else if (rotary->dir_debounced[i] == 2) //cw
+                    switchReport.lx = SWITCH_JOYSTICK_MAX;
+                break;
+            case JOY_LEFT_Y:
+                if (rotary->dir_debounced[i] == 0) //ccw
+                    switchReport.ly = SWITCH_JOYSTICK_MIN;
+                else if (rotary->dir_debounced[i] == 2) //cw
+                    switchReport.ly = SWITCH_JOYSTICK_MAX;
+                break;
+            case JOY_RIGHT_X:
+                if (rotary->dir_debounced[i] == 0) //ccw
+                    switchReport.rx = SWITCH_JOYSTICK_MIN;
+                else if (rotary->dir_debounced[i] == 2) //cw
+                    switchReport.rx = SWITCH_JOYSTICK_MAX;
+                break;
+            case JOY_RIGHT_Y:
+                if (rotary->dir_debounced[i] == 0) //ccw
+                    switchReport.ry = SWITCH_JOYSTICK_MIN;
+                else if (rotary->dir_debounced[i] == 2) //cw
+                    switchReport.ry = SWITCH_JOYSTICK_MAX;
+                break;
+        }
+    }
+
+
+    //Button Data
     for (int i = 0; i < BTN_GPIO_SIZE; i++)
     {
         if ((debounced_btn >> i) % 2 == 1)
@@ -170,7 +220,6 @@ void Gamepad::send_switch_report()
 
             if (button_mapping[i] == SWITCH_NONE)
                 continue;
-
             else if (button_mapping[i] <= SWITCH_LEFT)
             {
                 // Hat Button
@@ -186,15 +235,14 @@ void Gamepad::send_switch_report()
             }
             else if (button_mapping[i] >= FN_BOOTSEL && button_mapping[i] <= FN_NEXT_PROFILE)
             {
-                this->handle_func_btn(button_mapping[i]);
                 // Functions Btns
+                this->handle_func_btn(button_mapping[i]);
             }
 
-            // switchReport.hat = SWITCH_HAT_DOWN;
-            // switchReport.buttons= SWITCH_MASK_A;
         }
     }
 
+    // Turn Hat Status to Report
     switch (hat_status)
     {
     case (1U << SWITCH_UP):
