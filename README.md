@@ -25,7 +25,8 @@ Currently working/fixed:
 
 TODO:
 
-- Multi Rotary Mode
+- ~~Multi Rotary Mode~~
+- Change Rotary Direction debounce mode to time dependent
 - XInput
 - Config Memorization
 - Re-construct CMakeLists

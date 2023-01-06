@@ -27,7 +27,8 @@ const uint8_t BTN_GPIO[BTN_GPIO_SIZE] = {
 #define ENC_GPIO_SIZE 2               // Number of encoders
 const uint8_t ENC_GPIO[ENC_GPIO_SIZE] = {18,20};      // L_ENC(0, 1); R_ENC(2, 3)
 const bool ENC_REV = false;  // Reverse Encoders
-#define ENC_DEBOUNCE_COUNT 100 // Encoder debounce
+#define ENC_DEBOUNCE_COUNT 15 // Encoder debounce
+#define ENC_DEBOUNCE_TIME_US 500 // Encoder debounce time, will stay in CW/CCW after stop spinning at least this long
 #define MOUSE_SENS 1                  // Mouse sensitivity multiplier
 // #define ENC_PULSE (ENC_PPR * 4)       // 4 pulses per PPR
 
@@ -52,7 +53,7 @@ const bool ENC_REV = false;  // Reverse Encoders
 
 typedef struct {
     const char* name="Default Profile";
-    const char* helperText="None";
+    const char* helperText="";
     uint8_t base_layer_btn[BTN_GPIO_SIZE]; // keycodes for base layer
     uint8_t append_layer_btn[BTN_GPIO_SIZE]; // keycodes for append layer, switch to append layer by pressing user defined button
     RotaryMode rotary_mode[ENC_GPIO_SIZE]; // rotary mode for each encoder

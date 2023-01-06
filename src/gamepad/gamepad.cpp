@@ -331,7 +331,7 @@ void Gamepad::send_report()
                 break;
             }
         }
-        this->updateDisplay= true; // for debugging 
+        // this->updateDisplay= true; // for debugging 
 
         switch (input_mode)
         {
