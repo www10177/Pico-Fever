@@ -78,7 +78,14 @@ void init()
 
 void startup_hotkeys() {
     //  Buttons are pull up, enter when last button is pressed
-  if (!gpio_get(BOOTSEL_STARTUP_GPIO) == true) reset_usb_boot(0, 0);
+  if (!gpio_get(BOOTSEL_STARTUP_GPIO) == true) {
+        if (I2C_DISPLAY_ENABLED ) {
+            display->clear();
+            drawText(display, font_16x32, "FLASH", 0, 20);
+            display->sendBuffer();
+        }
+    reset_usb_boot(0, 0);
+  }
   else if (!gpio_get(SWITCH_STARTUP_GPIO) == true) input_mode = INPUT_MODE_SWITCH;
 //   else if (!gpio_get(XINPUT_STARTUP_GPIO) == true) input_mode = INPUT_MODE_XINPUT; // Not Supported Yet
   else if (!gpio_get(KEYBOARD_STARTUP_GPIO) == true) input_mode = INPUT_MODE_KEYBOARD;
@@ -95,7 +102,7 @@ void startup_hotkeys() {
 }
 void update_display(Gamepad* gamepad) {
   // Only update display when gamepad profile is updated
-  if (gamepad->isProfileUpdated){ 
+  if (gamepad->isProfileUpdated || gamepad->updateDisplay){ 
     display->clear();
 
     // Start Drawing
@@ -110,15 +117,19 @@ void update_display(Gamepad* gamepad) {
     drawText(display, font_8x8, title.c_str(), 0, 4); // Title 
     int context_y0 = 18;
     drawText(display, font_8x8, gamepad->profileNow->name, 0, context_y0);
-    drawText(display, font_5x8, gamepad->profileNow->helperText, 0, context_y0+8);
-    // int number= gamepad->isBaseLayer; // add profile count to make sure it is positive
-    // int number= sizeof(gamepad->profiles); // add profile count to make sure it is positive
-    // drawText(display, font_8x8, std::to_string(number).c_str(), 0, context_y0 + 10);
+    // drawText(display, font_5x8, gamepad->profileNow->helperText, 0, context_y0+8);
+    int number= gamepad->rotary->delta[0]; // add profile count to make sure it is positive
+    // int number2= gamepad->rotary->delta[1]; // add profile count to make sure it is positive
+    // int number= gamepad->rotary->dir_debounced[0]; // add profile count to make sure it is positive
+    int number2= gamepad->rotary->dir_debounced[1]; // add profile count to make sure it is positive
+    drawText(display, font_8x8, std::to_string(number).c_str(), 0, context_y0 + 10);
+    drawText(display, font_8x8, std::to_string(number2).c_str(), 0, context_y0 + 19);
     // number= sizeof(gamepad->profiles[0]); // add profile count to make sure it is positive
     // drawText(display, font_8x8, std::to_string(number).c_str(), 0, context_y0 + 20);
 
     display->sendBuffer();
     gamepad->isProfileUpdated = false;
+    gamepad->updateDisplay= false;
   }
 }
 
@@ -131,7 +142,6 @@ int main(void) {
     init();
     startup_hotkeys();
     tusb_init();
-    // if (I2C_DISPLAY_ENABLED ) update_display(gamepad);
     while (true)
     {
         // if (!gpio_get(BOOTSEL_STARTUP_GPIO) == true) reset_usb_boot(0, 0);

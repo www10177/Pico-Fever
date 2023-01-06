@@ -18,6 +18,7 @@ public:
     uint16_t RX=0;
     uint16_t RY=0;
     bool isProfileUpdated = true;
+    bool updateDisplay = true;
     int profile_index= 0;
 
     Gamepad(Profile profiles[], int profile_count);//int gpio_size, const uint8_t *sw_gpio, int debounce_us);

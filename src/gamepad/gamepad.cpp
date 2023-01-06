@@ -96,10 +96,10 @@ void Gamepad::update_inputs()
 void Gamepad::send_keyboard_report()
 {
     // Initialize
-    int mouse_x, mouse_y = 0;
+    int mouse_x =0, mouse_y = 0;
     std::fill(std::begin(keyboardReport), std::end(keyboardReport), 0); // cleanup keyboard report
     uint8_t *button_mapping = isBaseLayer ? profileNow->base_layer_btn : profileNow->append_layer_btn;
-    uint8_t arrow_triggerd[4] = {HID_KEY_NONE, HID_KEY_NONE,HID_KEY_NONE, HID_KEY_NONE}; // up, down, left, right; used for rotary UDLR, saved kb arrow keycode if triggered
+    uint8_t arrow_triggered[4] = {HID_KEY_NONE, HID_KEY_NONE,HID_KEY_NONE, HID_KEY_NONE}; // up, down, left, right; used for rotary UDLR, saved kb arrow keycode if triggered
 
 
     // Get Rotary Data
@@ -151,7 +151,8 @@ void Gamepad::send_keyboard_report()
     }
 
     // take turns to sent mouse report and button report 
-    if (!has_sent_mouse_report) {
+    // report mouse only when mouse is moved
+    if (mouse_x + mouse_y != 0 && !has_sent_mouse_report) {
         tud_hid_mouse_report(REPORT_ID_MOUSE, 0x00, mouse_x,
                             mouse_y, 0, 0);
         has_sent_mouse_report = true;
@@ -327,10 +328,10 @@ void Gamepad::send_report()
             {
                 // Only checking base layer button mapping to avoid the situation that append layer key is not set corrected
                 this->isBaseLayer = false;
-                this->isProfileUpdated = true;
                 break;
             }
         }
+        this->updateDisplay= true; // for debugging 
 
         switch (input_mode)
         {
