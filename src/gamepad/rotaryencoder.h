@@ -22,10 +22,10 @@ private:
     //Encoder values 
     uint32_t *enc_val;
     uint32_t *prev_enc_val;
-    uint8_t *direction ;
+    uint8_t *last_direction ;
+    uint32_t *last_dir_changed_time;
     uint32_t *dir_debouncing_counter ;
     static void dma_handler() ;
-    // uint32_t getMillis() ;
     
 };
 

@@ -81,6 +81,8 @@ typedef enum
     JOY_LEFT_Y, //  as Y axis of left joystick 
     JOY_RIGHT_X, // as X axis right joystick
     JOY_RIGHT_Y, // as Y axis right joystick
+    KEY_LEFT_SHIFT, // both CW/CCW as left shift key, for DJMAX respect
+    KEY_RIGHT_SHIFT, // both CW/CCW as right shift key, for DJMAX respect
     DISABLE_ROTARY, 
 } RotaryMode;
 

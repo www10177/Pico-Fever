@@ -28,7 +28,7 @@ const uint8_t BTN_GPIO[BTN_GPIO_SIZE] = {
 const uint8_t ENC_GPIO[ENC_GPIO_SIZE] = {18,20};      // L_ENC(0, 1); R_ENC(2, 3)
 const bool ENC_REV = false;  // Reverse Encoders
 #define ENC_DEBOUNCE_COUNT 15 // Encoder debounce
-#define ENC_DEBOUNCE_TIME_US 500 // Encoder debounce time, will stay in CW/CCW after stop spinning at least this long
+#define ENC_DEBOUNCE_TIME_US 100000 // Encoder debounce time, will stay in CW/CCW after stop spinning at least this long
 #define MOUSE_SENS 1                  // Mouse sensitivity multiplier
 // #define ENC_PULSE (ENC_PPR * 4)       // 4 pulses per PPR
 

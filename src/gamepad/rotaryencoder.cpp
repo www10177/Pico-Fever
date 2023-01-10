@@ -22,17 +22,23 @@ RotaryInput::RotaryInput()//uint8_t enc_gpio_size, const uint8_t * enc_gpio, boo
     enc_val = new uint32_t[enc_gpio_size]();
     delta= new uint32_t[enc_gpio_size]();
     prev_enc_val = new uint32_t[enc_gpio_size]();
-    direction = new uint8_t [enc_gpio_size]();
     dir_debounced = new uint8_t [enc_gpio_size]();
     dir_debouncing_counter = new uint32_t[enc_gpio_size]();
+    last_dir_changed_time= new uint32_t [enc_gpio_size]();
+    last_direction = new uint8_t[enc_gpio_size]();
+    for (int i = 0; i < enc_gpio_size; i++)
+    {
+        enc_val[i] = 0, delta[i]=0;
+        enc_val[i]=0, prev_enc_val[i] = 0;
+        dir_debounced[i]=1, dir_debouncing_counter[i] = 1;
+        last_dir_changed_time[i] = 0, last_direction[i] = 1;
+    }
 
     // Setup Encoders
     PIO pio = pio0;
     uint offset = pio_add_program(pio, &encoders_program);
     for (int i = 0; i < enc_gpio_size; i++)
     {
-        enc_val[i], prev_enc_val[i] = 0;
-        direction[i], dir_debounced[i], dir_debouncing_counter[i] = 1;
         encoders_program_init(pio, i, offset, enc_gpio[i], debounce_count> 0);
 
         dma_channel_config c = dma_channel_get_default_config(i);
@@ -53,39 +59,41 @@ RotaryInput::RotaryInput()//uint8_t enc_gpio_size, const uint8_t * enc_gpio, boo
 }
 RotaryInput::~RotaryInput()
 {
-    delete enc_val,delta, prev_enc_val,direction,dir_debounced,dir_debouncing_counter;
+    delete enc_val,delta, prev_enc_val,last_dir_changed_time,dir_debounced,dir_debouncing_counter;
 }
 
 void RotaryInput::update()
 {
     for (int i = 0; i < enc_gpio_size; i++)
     {
-        int new_dir;
+        uint8_t direction = 1;
         delta[i] = (enc_val[i] - prev_enc_val[i]) * (enc_rev? 1 : -1);
         if (enc_val[i] > prev_enc_val[i])
-            direction[i] = enc_rev? 2 : 0;
+            direction = enc_rev? 2 : 0;
         else if (enc_val[i] < prev_enc_val[i])
-            direction[i] = enc_rev? 0 : 2;
-        else
-            direction[i] = 1;
+            direction = enc_rev? 0 : 2;
 
         // Ugly if-else statement to eliminate bouncing(?) of encoder
         // Bouncing only happens when the encoder is turning
-        if (direction[i] == 1)
+        if (direction == 1)
         {
-            if (dir_debouncing_counter[i] > debounce_count)
-            {
+            if (last_direction[i] == 1 ){
                 dir_debounced[i] = 1;
             }
-            else
-            {
-                dir_debouncing_counter[i]++;
+            else {
+                if (time_us_32() - last_dir_changed_time[i] > ENC_DEBOUNCE_TIME_US) {
+                    dir_debounced[i] = 1;
+                    last_direction[i] = 1;
+                }
+                else {
+                    dir_debounced[i] = last_direction[i];
+                }
             }
         }
-        else
-        {
-            dir_debounced[i] = direction[i];
-            dir_debouncing_counter[i] = 1;
+        else {
+            last_dir_changed_time[i] = time_us_32();
+            last_direction[i] = direction;
+            dir_debounced[i] = direction;
         }
 
         prev_enc_val[i] = enc_val[i];

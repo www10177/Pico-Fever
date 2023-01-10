@@ -81,7 +81,7 @@ void startup_hotkeys() {
   if (!gpio_get(BOOTSEL_STARTUP_GPIO) == true) {
         if (I2C_DISPLAY_ENABLED ) {
             display->clear();
-            drawText(display, font_16x32, "FLASH", 0, 20);
+            drawText(display, font_16x32, "BOOTSEL", 0, 20);
             display->sendBuffer();
         }
     reset_usb_boot(0, 0);
@@ -119,16 +119,18 @@ void update_display(Gamepad* gamepad) {
     drawText(display, font_8x8, gamepad->profileNow->name, 0, context_y0);
     //Rotary Info for debugging
 
+
+    drawText(display, font_5x8, gamepad->profileNow->helperText, 0, context_y0+8);
+
+
     // int numberl1= gamepad->rotary->delta[0]; // add profile count to make sure it is positive
     // int numberl2= gamepad->rotary->dir_debounced[0]; // add profile count to make sure it is positive
-    // int numberr1= gamepad->rotary->delta[0]; // add profile count to make sure it is positive
+    // int numberr1= gamepad->rotary->delta[1]; // add profile count to make sure it is positive
     // int numberr2= gamepad->rotary->dir_debounced[1]; // add profile count to make sure it is positive
     // std::string rotary_text= "R: ";
     // rotary_text += std::to_string(numberl1) + " " + std::to_string(numberl2) + " | ";
     // rotary_text += std::to_string(numberr1) + " " + std::to_string(numberr2);
-    // drawText(display, font_8x8, rotary_text.c_str(), 0, context_y0 + 8);
-
-    drawText(display, font_5x8, gamepad->profileNow->helperText, 0, context_y0+8);
+    // drawText(display, font_8x8, rotary_text.c_str(), 0, context_y0 + 18);
     // drawText(display, font_8x8, std::to_string(number).c_str(), 0, context_y0 + 10);
     // number= sizeof(gamepad->profiles[0]); // add profile count to make sure it is positive
     // drawText(display, font_8x8, std::to_string(number).c_str(), 0, context_y0 + 20);

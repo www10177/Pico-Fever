@@ -99,7 +99,8 @@ void Gamepad::send_keyboard_report()
     int mouse_x =0, mouse_y = 0;
     std::fill(std::begin(keyboardReport), std::end(keyboardReport), 0); // cleanup keyboard report
     uint8_t *button_mapping = isBaseLayer ? profileNow->base_layer_btn : profileNow->append_layer_btn;
-    uint8_t arrow_triggered[4] = {HID_KEY_NONE, HID_KEY_NONE,HID_KEY_NONE, HID_KEY_NONE}; // up, down, left, right; used for rotary UDLR, saved kb arrow keycode if triggered
+    uint8_t keys_triggered[6] = {HID_KEY_NONE, HID_KEY_NONE,HID_KEY_NONE, HID_KEY_NONE, HID_KEY_NONE, HID_KEY_NONE}; // up, down, left, right, l_shift, r_shift; used for rotary UDLR, saved kb arrow keycode if triggered
+    // uint8_t fn_key_triggered[2] = {HID_KEY_NONE, HID_KEY_NONE}; // left shift and right shift , same as above
 
 
     // Get Rotary Data
@@ -113,21 +114,27 @@ void Gamepad::send_keyboard_report()
                 mouse_y += rotary->delta[i]*MOUSE_SENS;
                 break;
             case KB_ARROW_UD:
-                arrow_triggered[0] |= (rotary->dir_debounced[i] == 0?HID_KEY_ARROW_UP:HID_KEY_NONE);//CCW-spin
-                arrow_triggered[1] |= (rotary->dir_debounced[i] == 2?HID_KEY_ARROW_DOWN:HID_KEY_NONE);//CW-spin
+                keys_triggered[0] |= (rotary->dir_debounced[i] == 0?HID_KEY_ARROW_UP:HID_KEY_NONE);//CCW-spin
+                keys_triggered[1] |= (rotary->dir_debounced[i] == 2?HID_KEY_ARROW_DOWN:HID_KEY_NONE);//CW-spin
                 break;
             case KB_ARROW_LR:
-                arrow_triggered[2] |= (rotary->dir_debounced[i] == 0?HID_KEY_ARROW_LEFT:HID_KEY_NONE);//CCW-spin
-                arrow_triggered[3] |= (rotary->dir_debounced[i] == 2?HID_KEY_ARROW_RIGHT:HID_KEY_NONE);//CW-spin
+                keys_triggered[2] |= (rotary->dir_debounced[i] == 0?HID_KEY_ARROW_LEFT:HID_KEY_NONE);//CCW-spin
+                keys_triggered[3] |= (rotary->dir_debounced[i] == 2?HID_KEY_ARROW_RIGHT:HID_KEY_NONE);//CW-spin
+                break;
+            case KEY_LEFT_SHIFT:
+                keys_triggered[4] |= (rotary->dir_debounced[i] != 1?HID_KEY_SHIFT_LEFT:HID_KEY_NONE);
+                break;
+            case KEY_RIGHT_SHIFT:
+                keys_triggered[5] |= (rotary->dir_debounced[i] != 1?HID_KEY_SHIFT_RIGHT:HID_KEY_NONE);
                 break;
         }
     }
 
-    //Rotary: add triggered arrow keycode to keyboard report
-    for (int i = 0; i < 4; i++) {
-        if (arrow_triggered[i] != HID_KEY_NONE) {
-            uint8_t bit = arrow_triggered[i] % 8;
-            uint8_t byte = (arrow_triggered[i] / 8) + 1;
+    //Rotary: add triggered keycode to keyboard report
+    for (int i = 0; i < 6; i++) {
+        if (keys_triggered[i] != HID_KEY_NONE) {
+            uint8_t bit = keys_triggered[i] % 8;
+            uint8_t byte = (keys_triggered[i] / 8) + 1;
             if (byte > 0 && byte <= 31) keyboardReport[byte] |= (1 << bit);
         }
     }
